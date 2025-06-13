@@ -4,6 +4,8 @@ namespace Webkul\MUMBOS\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
+use Webkul\MUMBOS\Models\Shareholder;
+use Webkul\MUMBOS\Models\Contribution;
 
 class MUMBOSServiceProvider extends ServiceProvider
 {
@@ -14,6 +16,15 @@ class MUMBOSServiceProvider extends ServiceProvider
      */
     public function boot()
     {
+
+
+        \Webkul\Customer\Models\Customer::resolveRelationUsing('shareholder', function ($customer) {
+            return $customer->hasOne(
+                Shareholder::class,
+                'customer_id'
+            );
+        });
+    
         $this->loadMigrationsFrom(__DIR__ . '/../Database/Migrations');
 
         $this->loadRoutesFrom(__DIR__ . '/../Routes/admin-routes.php');
@@ -27,6 +38,8 @@ class MUMBOSServiceProvider extends ServiceProvider
         Event::listen('bagisto.admin.layout.head', function($viewRenderEventManager) {
             $viewRenderEventManager->addTemplate('mumbos::admin.layouts.style');
         });
+
+
     }
 
     /**
