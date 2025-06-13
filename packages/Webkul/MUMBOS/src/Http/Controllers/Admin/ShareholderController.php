@@ -4,6 +4,7 @@ namespace Webkul\MUMBOS\Http\Controllers\Admin;
 
 use Illuminate\Routing\Controller;
 use Webkul\MUMBOS\Models\Shareholder;
+use Webkul\MUMBOS\Models\Share;
 use Webkul\Customer\Models\Customer;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
@@ -18,15 +19,17 @@ class ShareholderController extends Controller
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
     public function index()
-    {
-        $shareholders = Shareholder::with('customer')->paginate(20);
-        return view('mumbos::admin.shareholders.index', compact('shareholders'));
+    {   
+        $shares = Share::all(); 
+        $shareholders = Shareholder::with('customer', 'shares')->paginate(20);
+        return view('mumbos::admin.shareholders.index', compact('shareholders', 'shares'));
     }
 
     public function create()
     {
+        $shares = Share::all(); 
         $customers = Customer::doesntHave('shareholder')->get();
-        return view('mumbos::admin.shareholders.create', compact('customers'));
+        return view('mumbos::admin.shareholders.create', compact('customers','shares'));
     }
 
    public function store(Request $request)
@@ -70,7 +73,8 @@ class ShareholderController extends Controller
 
 public function edit(Shareholder $shareholder)
 {
-    return view('mumbos::admin.shareholders.edit', compact('shareholder'));
+    $shares = Share::all(); 
+    return view('mumbos::admin.shareholders.edit', compact('shareholder','shares'));
 }
 
 
@@ -78,6 +82,9 @@ public function edit(Shareholder $shareholder)
 
 public function show(Shareholder $shareholder)
 {
+   
+    $shareholder->load('shares');
+
     $shareholder->load('customer');
 
     return view('mumbos::admin.shareholders.show', compact('shareholder'));
@@ -157,4 +164,28 @@ public function downloadShareholderDocument($id, $documentType)
     return redirect()->back()->with('error', 'Document not found.');
 }
 
+
+public function allocateShares(Request $request, Shareholder $shareholder)
+{
+    $data = $request->validate([
+        'share_id' => 'required|exists:shares,id',
+        'units'    => 'required|integer|min:1',
+    ]);
+
+    $shareholder->shares()->syncWithoutDetaching([
+        $data['share_id'] => ['units' => $data['units']],
+    ]);
+
+    return redirect()->back()->with('success', 'Shares allocated successfully.');
+}
+public function deallocateShares(Request $request, Shareholder $shareholder)
+    {
+        $data = $request->validate([
+            'share_id' => 'required|exists:shares,id',
+        ]);
+
+        $shareholder->shares()->detach($data['share_id']);
+
+        return redirect()->back()->with('success', 'Shares deallocated successfully.');
+    }
 }

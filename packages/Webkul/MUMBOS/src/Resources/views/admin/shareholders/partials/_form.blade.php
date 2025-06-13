@@ -64,28 +64,6 @@
                 @enderror
 
                 </div>
-
-        {{-- Share Class --}}
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Share Class</label>
-            <input type="text" name="share_class" value="{{ old('share_class', optional($shareholder)->share_class) }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-        </div>
-
-        {{-- Share Units --}}
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Share Units</label>
-            <input type="number" name="share_units" value="{{ old('share_units', optional($shareholder)->share_units ?? 0) }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-        </div>
-
-        {{-- Capital Paid --}}
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Capital Paid (KES)</label>
-            <input type="number" step="0.01" name="capital_paid" value="{{ old('capital_paid', optional($shareholder)->capital_paid ?? 0) }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-        </div>
-
         {{-- Joined At --}}
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Joined At</label>

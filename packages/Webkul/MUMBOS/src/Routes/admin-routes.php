@@ -2,6 +2,7 @@
 
 use Illuminate\Support\Facades\Route;
 use Webkul\MUMBOS\Http\Controllers\Admin\MUMBOSController;
+use Webkul\MUMBOS\Http\Controllers\Admin\ShareController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareholderController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareholderGroupController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ContributionController;
@@ -35,9 +36,23 @@ Route::group([
         Route::get('/{shareholder}/edit', 'edit')->name('edit');
         Route::put('/{shareholder}', 'update')->name('update');
         Route::delete('/{shareholder}', 'destroy')->name('destroy');
+
+
+     Route::post('/{shareholder}/allocate-shares', 'allocateShares')->name('allocate-shares');
     });
 });
 
+Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/shares'], function () {
+    Route::controller(ShareController::class)->group(function () {
+        Route::get('/', 'index')->name('admin.shares.index');
+        Route::get('/create', 'create')->name('admin.shares.create');
+        Route::post('/', 'store')->name('admin.shares.store');
+        Route::get('/{share}/edit', 'edit')->name('admin.shares.edit');
+           Route::get('/{share}', 'show')->name('admin.shares.show');
+        Route::put('/{share}', 'update')->name('admin.shares.update');
+        Route::delete('/{share}', 'destroy')->name('admin.shares.destroy');
+    });
+});
 
 
 

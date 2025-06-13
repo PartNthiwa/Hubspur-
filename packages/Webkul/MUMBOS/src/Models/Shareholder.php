@@ -54,4 +54,12 @@ class Shareholder extends Model implements ShareholderContract
     {
         return $this->hasMany(Contribution::class, 'shareholder_id');
     }
+ 
+    public function shares()
+    {
+        return $this->belongsToMany(\Webkul\MUMBOS\Models\Share::class, 'shareholder_share')
+                    ->withPivot('units')
+                    ->withTimestamps();
+    }
+
 }
