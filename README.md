@@ -1,10 +1,24 @@
-# 📘 Hubspur Platform Documentation
+<p align="center">
+  <img src="https://img.shields.io/badge/PHP-8.x-8892BF?logo=php&logoColor=white" alt="PHP">
+  <img src="https://img.shields.io/badge/Laravel-Framework-F55247?logo=laravel&logoColor=white" alt="Laravel">
+  <img src="https://img.shields.io/badge/MySQL-Database-00758F?logo=mysql&logoColor=white" alt="MySQL">
+  <img src="https://img.shields.io/badge/Tailwind-CSS-38B2AC?logo=tailwindcss&logoColor=white" alt="Tailwind CSS">
+  <img src="https://img.shields.io/badge/Livewire-Components-4E56A6?logo=livewire&logoColor=white" alt="Livewire">
+  <img src="https://img.shields.io/badge/AlpineJS-Frontend-8BC0D0?logo=alpine.js&logoColor=white" alt="AlpineJS">
+</p>
 
-**Version:** 1.0  
-**Maintained by:** Patrick Nthiwa 
-**System Stack:** PHP 8.x, Laravel, Tailwind CSS, MySQL, AlpineJS, Livewire  
+<h1 align="center">📘 Hubspur Platform Documentation</h1>
 
----
+<p align="center">
+  <strong>Version:</strong> 1.0  
+  <br />
+  <strong>Maintained by:</strong> Patrick Nthiwa  
+  <br />
+  <strong>System Stack:</strong> PHP 8.x, Laravel, Tailwind CSS, MySQL, AlpineJS, Livewire
+</p>
+
+<hr />
+
 
 ## 🏢 Overview
 
