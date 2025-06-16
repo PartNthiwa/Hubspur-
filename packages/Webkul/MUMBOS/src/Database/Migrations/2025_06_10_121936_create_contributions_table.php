@@ -11,29 +11,47 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('contributions', function (Blueprint $table) {
-            $table->id();
-              $table->foreignId('shareholder_id')
-                ->constrained('shareholders')
-                ->onDelete('cascade');
-           
-                 $table->decimal('amount', 12, 2);
-                $table->string('type');                     // Cash, Transfer, M-Pesa, etc.
-                $table->string('reference')->nullable();    // Bank/Mobile Txn Ref
-                $table->string('note')->nullable();         // Remarks
-                $table->enum('status', ['pending', 'approved', 'rejected'])
-                    ->default('approved');
-                $table->date('contributed_at');             // Actual payment date
-
-                // Tracking
-                $table->unsignedInteger('recorded_by')->nullable(); // Admin who recorded
-                $table->foreign('recorded_by')
-                    ->references('id')
-                    ->on('admins')
-                    ->onDelete('set null');
-
+            Schema::create('contributions', function (Blueprint $table) {
+                $table->id();
+                $table->UnsignedInteger('shareholder_id')->constrained()->onDelete('cascade');
+                $table->decimal('amount', 12, 2);
+                $table->string('currency', 3)->default('KES');
+                $table->enum('payment_method', ['cash','bank_transfer','mpesa','paypal'])->default('bank_transfer');
+                $table->string('payment_channel')->nullable();
+                $table->string('payment_reference')->nullable();
+                $table->string('payment_receipt')->nullable();
+                $table->enum('payment_status', ['pending','completed','failed'])->default('pending');
+                $table->json('payment_metadata')->nullable();
+                $table->decimal('payment_fee', 12, 2)->default(0.00);
+                $table->timestamp('paid_at')->nullable();
+                $table->date('contributed_at');
+                $table->enum('status', ['pending','approved','rejected'])->default('pending');
+                $table->UnsignedInteger('recorded_by')->nullable()->constrained('admins')->onDelete('set null');
+                $table->UnsignedInteger('approved_by')->nullable()->constrained('admins')->onDelete('set null');
+                $table->timestamp('approved_at')->nullable();
+                $table->text('note')->nullable();
+                $table->string('receipt_url')->nullable();
+                $table->UnsignedInteger('created_by')->nullable()->constrained('admins')->onDelete('set null');
+                $table->UnsignedInteger('updated_by')->nullable()->constrained('admins')->onDelete('set null');
+                $table->UnsignedInteger('deleted_by')->nullable()->constrained('admins')->onDelete('set null');
+                $table->softDeletes();
                 $table->timestamps();
-        });
+
+                // Indexes
+                $table->index('shareholder_id');
+                $table->index('status');
+                $table->index('payment_method');
+                $table->index('payment_status');
+                $table->index('contributed_at');
+                $table->index('paid_at');
+                $table->index('approved_at');
+                $table->index('recorded_by');
+                $table->index('approved_by');
+                $table->index('payment_reference');
+                $table->index(['shareholder_id','status','payment_method']);
+            });
+
+
     }
 
     /**

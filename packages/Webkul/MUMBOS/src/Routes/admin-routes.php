@@ -62,9 +62,11 @@ Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions
         Route::get('', 'index')->name('admin.contributions.index');
         Route::get('create', 'create')->name('admin.contributions.create');
         Route::post('', 'store')->name('admin.contributions.store');
-        Route::get('{id}/edit', 'edit')->name('admin.contributions.edit');
-        Route::put('{id}', 'update')->name('admin.contributions.update');
-        Route::delete('{id}', 'destroy')->name('admin.contributions.destroy');
+
+        Route::get('{contribution}/edit', 'edit')->name('admin.contributions.edit');
+        Route::put('{contribution}', 'update')->name('admin.contributions.update');
+        Route::delete('{contribution}', 'destroy')->name('admin.contributions.destroy');
+        Route::get('{contribution}', 'show')->name('admin.contributions.show');
     });
 });
 
@@ -73,3 +75,4 @@ Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/mumbos'], fun
         Route::get('', 'index')->name('admin.mumbos.index');
     });
 });
+
