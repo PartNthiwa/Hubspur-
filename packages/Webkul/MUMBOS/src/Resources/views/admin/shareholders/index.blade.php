@@ -18,6 +18,7 @@
                     <th class="px-4 py-3 text-left font-semibold">Share Class</th>
                     <th class="px-4 py-3 text-left font-semibold">Share Units</th>
                     <th class="px-4 py-3 text-left font-semibold">Total Contributions</th>
+                
                     <th class="px-4 py-3 text-left font-semibold">Status</th>
                     <th class="px-4 py-3 text-left font-semibold">Actions</th>
                 </tr>
@@ -129,29 +130,32 @@
                                     </svg>
                                 </a>
 
-<button
-    type="button"
-    onclick="openModal('{{ $shareholder->id }}')"
-    class="text-green-600 hover:text-green-800"
-    title="Allocate Shares"
->
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-    </svg>
-</button>
+                            <button
+                                type="button"
+                                onclick="openModal('{{ $shareholder->id }}')"
+                                class="text-green-600 hover:text-green-800"
+                                title="Allocate Shares"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                                </svg>
+                            </button>
 
-                                                            <form method="POST" action="{{ route('admin.shareholders.destroy', $shareholder->id) }}"
-                                      class="inline-block" onsubmit="return confirm('Delete this shareholder?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                             viewBox="0 0 24 24" stroke="currentColor">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                                  d="M6 18L18 6M6 6l12 12"/>
-                                        </svg>
-                                    </button>
-                                </form>
+                               <form method="POST" action="{{ route('admin.shareholders.destroy', $shareholder->shareholder_number) }}"
+
+                            class="inline-block"
+                            onsubmit="return confirm('Delete this shareholder?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                                    viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                        d="M6 18L18 6M6 6l12 12"/>
+                                </svg>
+                            </button>
+                        </form>
+
                             </div>
                         </td>
                     </tr>

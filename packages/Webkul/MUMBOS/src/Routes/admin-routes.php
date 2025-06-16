@@ -18,15 +18,13 @@ use Webkul\MUMBOS\Http\Controllers\Admin\ContributionController;
 //         Route::put('{id}', 'update')->name('admin.shareholders.update');
 //         Route::delete('{id}', 'destroy')->name('admin.shareholders.destroy');
 
-//         // Level-3 submenus under Shareholders
-//         Route::get('contact', 'contactInfo')->name('admin.shareholders.contact');
-//         Route::get('investment-history', 'investmentHistory') ->name('admin.shareholders.history');
+
 //     
 // });
 Route::group([
     'middleware' => ['web', 'admin'],
     'prefix' => 'admin/shareholders',
-    'as' => 'admin.shareholders.', // ✅ Add this line
+    'as' => 'admin.shareholders.', 
 ], function () {
     Route::controller(ShareholderController::class)->group(function () {
         Route::get('/', 'index')->name('index');

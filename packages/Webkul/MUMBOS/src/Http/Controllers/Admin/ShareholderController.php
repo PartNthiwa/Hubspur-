@@ -145,10 +145,25 @@ public function generateShareholderNumber()
 
 public function destroy(Shareholder $shareholder)
 {
-    $shareholder->delete();
+    try {
+        // Optional: Detach related shares first (to clean up pivot data)
+        $shareholder->shares()->detach();
 
-    return redirect()->route('admin.shareholders.index')->with('success', 'Shareholder deleted successfully.');
+        // Optional: You can also delete any related documents/files if applicable here
+
+        // Then delete the shareholder
+        $shareholder->delete();
+
+        return redirect()
+            ->route('admin.shareholders.index')
+            ->with('success', 'Shareholder deleted successfully.');
+    } catch (\Exception $e) {
+        return redirect()
+            ->back()
+            ->with('error', 'An error occurred while deleting the shareholder: ' . $e->getMessage());
+    }
 }
+
 
 
 
