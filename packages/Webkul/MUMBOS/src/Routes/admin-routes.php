@@ -39,8 +39,11 @@ Route::group([
 
 
      Route::post('/{shareholder}/allocate-shares', 'allocateShares')->name('allocate-shares');
+     Route::put('/{shareholderId}/update-units/{shareId}', [ShareholderController::class, 'updateShareUnits'])->name('update-units');
+
     });
 });
+
 
 Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/shares'], function () {
     Route::controller(ShareController::class)->group(function () {

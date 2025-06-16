@@ -10,6 +10,7 @@ class ModuleServiceProvider extends BaseModuleServiceProvider
 
                 // Add your models here,
                 \Webkul\MUMBOS\Models\Shareholder::class,
+                \Webkul\MUMBOS\Models\Share::class,
                 \Webkul\MUMBOS\Models\Contribution::class,
          
     ];

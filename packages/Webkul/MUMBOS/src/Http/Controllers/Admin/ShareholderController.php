@@ -165,27 +165,71 @@ public function downloadShareholderDocument($id, $documentType)
 }
 
 
+// public function allocateShares(Request $request, Shareholder $shareholder)
+// {
+//     $data = $request->validate([
+//         'share_id' => 'required|exists:shares,id',
+//         'units'    => 'required|integer|min:1',
+//     ]);
+
+//     $shareholder->shares()->syncWithoutDetaching([
+//         $data['share_id'] => ['units' => $data['units']],
+//     ]);
+
+//     return redirect()->back()->with('success', 'Shares allocated successfully.');
+// }
+
+
 public function allocateShares(Request $request, Shareholder $shareholder)
 {
-    $data = $request->validate([
+    $request->validate([
         'share_id' => 'required|exists:shares,id',
-        'units'    => 'required|integer|min:1',
+        'units' => 'required|integer|min:1',
     ]);
 
-    $shareholder->shares()->syncWithoutDetaching([
-        $data['share_id'] => ['units' => $data['units']],
-    ]);
+    $shareId = $request->input('share_id');
+    $unitsToAdd = $request->input('units');
+
+    // Check if the shareholder already owns this share class
+    $existing = $shareholder->shares()->where('share_id', $shareId)->first();
+
+    if ($existing) {
+        // Update existing units
+        $currentUnits = $existing->pivot->units;
+        $shareholder->shares()->updateExistingPivot($shareId, [
+            'units' => $currentUnits + $unitsToAdd,
+        ]);
+    } else {
+        // Create new allocation
+        $shareholder->shares()->attach($shareId, [
+            'units' => $unitsToAdd,
+        ]);
+    }
 
     return redirect()->back()->with('success', 'Shares allocated successfully.');
 }
-public function deallocateShares(Request $request, Shareholder $shareholder)
-    {
-        $data = $request->validate([
-            'share_id' => 'required|exists:shares,id',
+
+
+
+public function updateShareUnits(Request $request, $shareholderId, $shareId)
+{
+    $shareholder = Shareholder::findOrFail($shareholderId);
+    $share = Share::findOrFail($shareId);
+
+    $request->validate([
+        'units' => 'required|integer|min:0',
+    ]);
+
+    if ($request->units == 0) {
+        $shareholder->shares()->detach($share->id);
+    } else {
+        $shareholder->shares()->updateExistingPivot($share->id, [
+            'units' => $request->units,
         ]);
-
-        $shareholder->shares()->detach($data['share_id']);
-
-        return redirect()->back()->with('success', 'Shares deallocated successfully.');
     }
+
+    return back()->with('success', 'Share units updated.');
+}
+
+
 }

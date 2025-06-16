@@ -16,7 +16,7 @@
                     <th class="px-4 py-3 text-left font-semibold">Member Number</th>
                     <th class="px-4 py-3 text-left font-semibold">Full Name</th>
                     <th class="px-4 py-3 text-left font-semibold">Share Class</th>
-                    <th class="px-4 py-3 text-left font-semibold">Share Capital</th>
+                    <th class="px-4 py-3 text-left font-semibold">Share Units</th>
                     <th class="px-4 py-3 text-left font-semibold">Total Contributions</th>
                     <th class="px-4 py-3 text-left font-semibold">Status</th>
                     <th class="px-4 py-3 text-left font-semibold">Actions</th>
@@ -27,7 +27,6 @@
                     @php
                         $totalPaid = 0;
                         $shareClasses = [];
-
                         foreach ($shareholder->shares as $share) {
                             $units = $share->pivot->units ?? 0;
                             $price = $share->price_per_unit ?? 0;
@@ -66,9 +65,35 @@
                             @endforelse
                         </td>
 
-                        <td class="px-4 py-3">
-                            KES {{ number_format($totalPaid, 2) }}
-                        </td>
+                 <td class="px-4 py-3">
+                    @forelse($shareholder->shares as $share)
+                        <div class="mb-2">
+                           <form action="{{ route('admin.shareholders.update-units', [$shareholder->id, $share->id]) }}"  class="flex items-center gap-2" method="POST">
+
+                               
+                                @csrf
+                                @method('PUT')
+
+                                <label class="text-xs font-medium text-gray-700">{{ $share->class }}:</label>
+                                <input type="number"
+                                    name="units"
+                                    value="{{ $share->pivot->units }}"
+                                    min="0"
+                                    class="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
+                                    required>
+
+                                <button type="submit"
+                                        class="text-blue-600 hover:text-blue-800 text-xs underline">
+                                    Update
+                                </button>
+                            </form>
+                        </div>
+                    @empty
+                        <span class="text-gray-500">No shares</span>
+                    @endforelse
+                </td>
+
+
                         <td class="px-4 py-3">{{ $shareholder->capital_paid }}</td>
                        <td class="px-4 py-3">
                             @if ($shareholder->is_active)
