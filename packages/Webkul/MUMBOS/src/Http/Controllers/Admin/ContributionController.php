@@ -9,6 +9,8 @@ use Webkul\MUMBOS\Models\Contribution;
 use Webkul\MUMBOS\Models\Shareholder;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
+use Illuminate\Http\StreamedResponse;
+use Illuminate\Support\Facades\URL;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
@@ -33,9 +35,9 @@ class ContributionController extends Controller
         return view('mumbos::admin.contributions.create', compact('shareholders'));
     }
 
-  
-   public function store(Request $request)
+ public function store(Request $request)
 {
+    // 1. Validate incoming data
     $data = $request->validate([
         'shareholder_id'     => 'required|exists:shareholders,id',
         'amount'             => 'required|numeric|min:0.01',
@@ -46,50 +48,68 @@ class ContributionController extends Controller
         'contributed_at'     => 'required|date',
         'note'               => 'nullable|string',
     ]);
-    // Handle optional payment receipt upload
+
+    // 2. Handle optional original receipt upload (if any)
     if ($request->hasFile('payment_receipt')) {
         $data['payment_receipt'] = $request
             ->file('payment_receipt')
             ->store('contributions/receipts', 'public');
     } else {
-        $data['payment_receipt'] = null; // Ensure it's set even if not uploaded
+        $data['payment_receipt'] = null;
     }
-    // Set additional fields
+
+    // 3. Set audit & status fields
     $data['recorded_by']    = Auth::guard('admin')->id();
     $data['payment_status'] = 'pending';
     $data['status']         = 'pending';
 
-    // Save contribution first
+    // 4. Create the contribution
     $contribution = Contribution::create($data);
 
-    // Generate PDF Receipt
+    // 5. Generate PDF Receipt
     $pdf = Pdf::loadView('mumbos::admin.contributions.receipt', [
         'contribution' => $contribution
     ]);
 
+    // 6. Store the PDF into storage/app/public/receipts/
     $fileName = 'receipts/contribution_' . $contribution->id . '.pdf';
     Storage::disk('public')->put($fileName, $pdf->output());
 
-    // Update contribution with receipt URL
-    $contribution->update([
-        'receipt_url' => Storage::url($fileName),
-    ]);
+    // 7. Now set the public URL and save the model again
+    $contribution->receipt_url = Storage::url($fileName); // e.g. "/storage/receipts/contribution_1.pdf"
+    $contribution->save();
 
+
+    // 8. Redirect back with success
     return redirect()
         ->route('admin.contributions.index')
-        ->with('success', 'Contribution recorded, pending payment.');
+        ->with('success', 'Contribution recorded and receipt generated.');
 }
 
    
-    public function show(Contribution $contribution)
-    {
-        $contribution->load('shareholder.customer');
-          $contribution->refresh(); 
-// dd($contribution->toArray());
-        return view('mumbos::admin.contributions.show', compact('contribution'));
-    }
+//     public function show(Contribution $contribution)
+//     {
+//         $contribution->load('shareholder.customer');
+//           $contribution->refresh(); 
+// // dd($contribution->toArray());
+//         return view('mumbos::admin.contributions.show', compact('contribution'));
+//     }
 
-    public function edit(Contribution $contribution)
+public function show(Contribution $contribution)
+{
+    $contribution->load('shareholder.customer');
+    $contribution->refresh(); 
+
+    $signedUrl = URL::temporarySignedRoute(
+        'admin.contributions.receipt-preview',
+        now()->addMinutes(60),
+        ['contribution' => $contribution->id]
+    );
+
+    return view('mumbos::admin.contributions.show', compact('contribution', 'signedUrl'));
+}
+
+public function edit(Contribution $contribution)
     {
         $shareholders = Shareholder::where('is_active', true)->get();
 
@@ -97,7 +117,7 @@ class ContributionController extends Controller
     }
 
   
-    public function update(Request $request, Contribution $contribution)
+public function update(Request $request, Contribution $contribution)
     {
 
         //  dd('update method hit');
@@ -152,24 +172,20 @@ class ContributionController extends Controller
             ->with('success', 'Contribution deleted.');
     }
 
-    public function previewReceipt($id)
+
+
+public function previewReceipt(Contribution $contribution): StreamedResponse
 {
-    $contribution = Contribution::findOrFail($id);
+    $relativePath = ltrim(str_replace('/storage/', '', $contribution->receipt_url), '/');
+    $fullPath = Storage::disk('public')->path($relativePath);
 
-    if (!$contribution->receipt_url) {
-        abort(404, 'Receipt not available.');
-    }
-
-    $relativePath = str_replace('/storage/', '', $contribution->receipt_url);
-    $fullPath = storage_path('app/public/' . $relativePath);
-
-    if (!file_exists($fullPath)) {
-        abort(404, 'PDF file not found.');
+    if (! Storage::disk('public')->exists($relativePath)) {
+        abort(404, "Receipt not found at: $fullPath");
     }
 
     return response()->file($fullPath, [
         'Content-Type' => 'application/pdf',
-        'Content-Disposition' => 'inline; filename="receipt.pdf"',
+        'Content-Disposition' => 'inline; filename="receipt_' . $contribution->id . '.pdf"',
     ]);
 }
 

@@ -67,6 +67,8 @@ Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions
         Route::put('{contribution}', 'update')->name('admin.contributions.update');
         Route::delete('{contribution}', 'destroy')->name('admin.contributions.destroy');
         Route::get('{contribution}', 'show')->name('admin.contributions.show');
+
+        // Route::get('{contribution}/receipt-preview', 'previewReceipt')->name('admin.contributions.receipt-preview');
     });
 });
 
@@ -76,3 +78,10 @@ Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/mumbos'], fun
     });
 });
 
+// routes/web.php
+Route::get('/admin/contributions/{contribution}/receipt-preview', [ContributionController::class, 'previewReceipt'])
+    ->name('admin.contributions.receipt-preview')
+    ->middleware('signed');
+
+Route::get('admin/contributions/{contribution}/receipt', [ContributionController::class, 'downloadReceipt'])
+     ->name('admin.contributions.receipt.download');

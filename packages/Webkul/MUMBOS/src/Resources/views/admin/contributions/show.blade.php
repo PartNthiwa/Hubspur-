@@ -99,20 +99,35 @@
             </div>
 
             
-            <div class="col-span-2">
-                <h3 class="text-sm font-semibold text-gray-600 mb-2">Receipt</h3>
+        <div class="col-span-2">
+    <h3 class="text-sm font-semibold text-gray-600 mb-2">Receipt</h3>
 
-   
-                <div class="w-full border rounded overflow-hidden mb-3" style="height: 500px;">
-                    <iframe src="{{ $contribution->receipt_url }}" class="w-full h-full" frameborder="0"></iframe>
-                </div>
+   <div class="col-span-2">
+    <h3 class="text-sm font-semibold text-gray-600 mb-2">Receipt</h3>
 
-                {{-- Download link --}}
-                <a href="{{ $contribution->receipt_url }}" target="_blank"
-                class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition">
-                    Download Receipt PDF
-                </a>
-            </div>
+    @if($contribution->receipt_url)
+        <div class="w-full border rounded overflow-hidden mb-3" style="height: 500px;">
+            <iframe
+             src="{{ URL::signedRoute('admin.contributions.receipt-preview', $contribution) }}"
+                title="Contribution Receipt"
+                allowfullscreen
+                class="w-full h-full"
+                frameborder="0"
+            ></iframe>
+        </div>
+
+        <a href="{{ $contribution->receipt_url }}"
+           target="_blank"
+           class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded transition">
+            Download Receipt PDF
+        </a>
+    @else
+        <div class="p-4 bg-yellow-50 rounded border border-yellow-200 text-yellow-800 text-sm">
+            No receipt has been generated for this contribution yet.
+        </div>
+    @endif
+</div>
+
 
 
 

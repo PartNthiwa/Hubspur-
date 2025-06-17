@@ -122,23 +122,5 @@ class Contribution extends Model implements ContributionContract
     {
         return $query->where('payment_status', 'failed');
     }
-
-    //
-    // Accessors / Helpers
-    //
-
-    /** Full human‑readable label for payment method */
-    public function getPaymentMethodLabelAttribute()
-    {
-        return ucfirst(str_replace('_', ' ', $this->payment_method));
-    }
-
-    /** URL to the stored receipt (if any) */
-    public function getReceiptUrlAttribute()
-    {
-        return $this->payment_receipt
-            ? \Storage::disk('public')->url($this->payment_receipt)
-            : null;
-    }
  
 }
