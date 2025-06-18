@@ -1,4 +1,9 @@
-<x-shop::layouts>
+<x-shop::layouts
+  :has-header="false" 
+	:has-feature="false"
+	:has-footer="false"
+    :has-sidebar="false">
+    
     <x-slot:title>
         {{ __('Register as Shareholder') }}
     </x-slot>

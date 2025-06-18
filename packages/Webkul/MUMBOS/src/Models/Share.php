@@ -22,7 +22,11 @@ class Share extends Model implements ShareContract
      * @var array
      */
 
-     protected $fillable = ['class', 'units', 'price_per_unit'];
+    protected $fillable = [
+    'class', 'units', 'available_units', 'price_per_unit', 'total_value',
+    'description', 'icon_url', 'is_active', 'visibility'
+];
+
 
     /**
      * The attributes that should be cast to native types.
