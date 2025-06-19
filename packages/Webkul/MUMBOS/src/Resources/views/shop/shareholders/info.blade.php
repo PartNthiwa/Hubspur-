@@ -21,26 +21,24 @@
     :twitter-url="route('shop.shareholders.register.info')"
     :twitter-image-width="1200"
     :twitter-image-height="630"
-
+    :has-header="false" 
+    :has-footer="false"
 >
-  
-    <x-slot:title>
-        {{ __('Become a Shareholder - MUMBO Kenya Diaspora Investments') }}
-    </x-slot>
-   <div class="hidden">
-        <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.5.2/css/all.min.css">
+      @include('mumbos::layouts.partials.header')
 
-    </div>
+    <x-slot:title>
+        {{ __('Become a Member - MUMBO Kenya Diaspora Investments') }}
+    </x-slot>
+  
     <section class="p-0">
     <div class="relative h-72" style="background-image: url('https://images.unsplash.com/photo-1605902711622-cfb43c4437d1?fit=crop&w=1200&q=80'); background-size: cover; background-position: center;">
     <div class="relative h-72" style="background-image: url('https://images.unsplash.com/photo-1605902711622-cfb43c4437d1?fit=crop&w=1200&q=80'); background-size: cover; background-position: center;">
     <div class="absolute inset-0 bg-black bg-opacity-40 flex flex-col items-center justify-center text-center space-y-4">
-        <h1 class="text-white text-3xl font-bold">Become a Shareholder</h1>
+        <h1 class="text-white text-5xl font-bold">Become a Member</h1>
         <ol class="flex space-x-2 text-sm text-white">
             <li><a href="{{ url('/') }}" class="text-green-300 hover:underline">Home</a></li>
             <li>/</li>
-            <li class="text-white">Become a Shareholder</li>
+            <li class="text-white">Become a Member</li>
         </ol>
     </div>
 </div>
@@ -56,11 +54,11 @@
                                 <a href="{{ url('/') }}" class="text-green-300 hover:underline">Home</a>
                             </li>
                             <li class="mt-4">/</li>
-                            <li class="text-black mt-4">Become a Shareholder</li>
+                            <li class="text-black mt-4">Become a Member</li>
                         </ol>
                     </nav>
 
-                    <h1 class="text-capitalize font-bold text-3xl mb-4">Become a Shareholder</h1>
+                    <h1 class="text-capitalize font-bold text-3xl mb-4">Become a Member</h1>
                     <p class="text-gray-700">
                         Join MUMBO Kenya Diaspora Investments and be part of a transformative community investing in Kenya's future.
                         We offer you a secure, transparent and rewarding way to participate in impactful ventures.
@@ -95,7 +93,7 @@
 
                         <p class="mt-2 text-xl text-gray-800 font-medium">
                             <em>Value</em><br>
-                            <strong>KES {{ number_format($share->price_per_unit, 2) }}</strong>
+                            <strong>KES {{ number_format($share->total_value) }}</strong>
                         </p>
 
                         <!-- One button per card, passing price_per_unit -->
@@ -264,5 +262,5 @@
     }
 </script>
 
-
+  @include('mumbos::layouts.partials.footer')
 </x-shop::layouts>

@@ -263,37 +263,40 @@ public function dashboard()
     $shareholder = auth()->user()->shareholder;
 
     if (!$shareholder) {
-        return redirect()->route('shop.shareholders.register')->with('error', 'Please register as a shareholder first.');
+        return redirect()->route('shop.shareholders.register.create')->with('error', 'Please register as a shareholder first.');
     }
 
     // $shares = $shareholder->shares()->with('shareClass')->get();
     $shares = $shareholder->shares()->get();
     if ($shares->isEmpty()) {
-        return redirect()->route('shop.shareholders.register')->with('info', 'You have no shares registered. Please register for shares.');
+        return redirect()->route('shop.shareholders.register.create')->with('info', 'You have no shares registered. Please register for shares.');
     }
     $totalUnits = $shares->sum('pivot.units');
     $totalValue = $shares->sum(function ($share) {
         return $share->pivot->units * $share->price_per_unit;
     });
     if ($totalUnits < 1) {
-        return redirect()->route('shop.shareholders.register')->with('info', 'You have no shares registered. Please register for shares.');
+        return redirect()->route('shop.shareholders.register.create')->with('info', 'You have no shares registered. Please register for shares.');
     }
     if ($totalValue < 1) {
-        return redirect()->route('shop.shareholders.register')->with('info', 'You have no shares registered. Please register for shares.');
+        return redirect()->route('shop.shareholders.register.create')->with('info', 'You have no shares registered. Please register for shares.');
     }
 
     return view('mumbos::shop.shareholders.dashboard', compact('shareholder', 'shares', 'totalUnits', 'totalValue'));
 }
 
 
+
 public function register(Request $request)
 {
+    // 1. Ensure user is logged in
     if (! Auth::check()) {
         return redirect()
             ->route('shop.shareholders.login')
             ->with('error', 'Please log in to register for membership.');
     }
 
+    // 2. Validate input
     $data = $request->validate([
         'share_id'    => 'required|exists:shares,id',
         'total_value' => 'required|numeric|min:1',
@@ -301,34 +304,116 @@ public function register(Request $request)
 
     $shareholder = Auth::user()->shareholder;
     if (! $shareholder) {
-        return back()->with('error', 'You must be registered as a shareholder.');
-    }
-
-    $share = Share::findOrFail($data['share_id']);
-  
-    if (! $shareholder) {
         return redirect()
             ->route('shop.shareholders.register.create')
             ->with('error', 'You must register as a shareholder before purchasing shares.');
     }
 
-    // calculate units based on price_per_unit
+    $share = Share::findOrFail($data['share_id']);
+
+    // 3. Compute units
     $units = floor($data['total_value'] / $share->price_per_unit);
     if ($units < 1) {
         return back()->with('error', 'The amount is too low to purchase any units.');
     }
 
-    // attach (or syncWithoutDetaching) with pivot data
-    $shareholder->shares()->attach($share->id, [
-        'units'       => $units,
-        // 'total_value' => $data['total_value'],
-        'created_at'  => now(),
-        'updated_at'  => now(),
-    ]);
+    // 4. Check if shareholder already has this share
+    DB::transaction(function () use ($shareholder, $share, $units) {
+        if ($shareholder->shares()->where('share_id', $share->id)->exists()) {
+            // already has some units → increment
+            $shareholder->shares()->updateExistingPivot(
+                $share->id,
+                [
+                    'units'      => DB::raw("units + {$units}"),
+                    'updated_at' => now(),
+                ]
+            );
+        } else {
+            // first purchase of this share class
+            $shareholder->shares()->attach($share->id, [
+                'units'      => $units,
+                'created_at' => now(),
+                'updated_at' => now(),
+            ]);
+        }
+    });
 
-    return back()->with('success',
-        "You've successfully registered for {$units} units of {$share->class}."
-    );
+
+    return redirect()
+        ->route('shop.shareholders.dashboard')         
+        ->with('success', "You now own {$units} more units of “{$share->class}”.");
 }
 
+public function editProfile()
+{
+    $shareholder = Auth::user()->shareholder;
+
+    if (! $shareholder) {
+        return redirect()->route('shop.shareholders.register.create')->with('error', 'Please register as a shareholder.');
+    }
+
+    return view('mumbos::shop.shareholders.profile.edit', compact('shareholder'));
+}
+public function viewProfile()
+{
+    $shareholder = Auth::user()->shareholder;
+
+    return view('mumbos::shop.shareholders.profile.show', compact('shareholder'));
+}
+
+public function updateProfile(Request $request)
+{
+    $shareholder = Auth::user()->shareholder;
+
+    $data = $request->validate([
+        'full_name'         => 'required|string|max:255',
+        'phone'             => 'nullable|string|max:20',
+        'email'             => 'nullable|email|max:255',
+        'id_number'         => 'nullable|string|max:255',
+        'kra_pin'           => 'nullable|string|max:255',
+        'postal_address'    => 'nullable|string|max:255',
+        'physical_address'  => 'nullable|string|max:255',
+        'city'              => 'nullable|string|max:255',
+        'country'           => 'nullable|string|max:255',
+    ]);
+
+    $shareholder->update($data);
+
+    return redirect()->route('shop.shareholders.profile')->with('success', 'Profile updated successfully.');
+}
+ 
+    public function profile()
+    {
+        $shareholder = Auth::user()->shareholder;
+        if (!$shareholder) {
+            return redirect()->route('shop.shareholders.register.create')->with('error', 'Please register as a shareholder.');
+        }
+        return view('mumbos::shop.shareholders.profile', compact('shareholder'));   
+    }
+
+    public function showChangePasswordForm()
+{
+    $shareholder = Auth::user()->shareholder;
+
+    return view('mumbos::shop.shareholders.profile.change-password', compact('shareholder'));
+}
+
+       public function changePassword(Request $request)
+    {
+        $request->validate([
+            'current_password' => 'required|string',
+            'new_password'     => 'required|string|min:6|confirmed',
+        ]);
+
+        $shareholder = Auth::user()->shareholder;
+
+        if (! Hash::check($request->current_password, $shareholder->customer->password)) {
+            return back()->withErrors(['current_password' => 'Current password is incorrect.']);
+        }
+
+        $shareholder->customer->password = Hash::make($request->new_password);
+        $shareholder->customer->save();
+
+        return redirect()->route('shop.shareholders.profile')->with('success', 'Password changed successfully.');
+    }
 }

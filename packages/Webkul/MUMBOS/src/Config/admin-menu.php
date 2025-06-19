@@ -7,7 +7,7 @@ return [
         'name'  => 'MUMBO Memberships',
         'route' => 'admin.mumbos.index',
         'sort'  => 2,
-        'icon'  => 'temp-icon',
+        'icon'  => 'icon-temp',
     ],
 
     [
@@ -15,7 +15,7 @@ return [
         'name' => 'Shares',
         'route' => 'admin.shares.index',
         'sort' => 3,
-        'icon' => 'icon-table',
+        'icon' => 'whyus',
     ],
     [
         'key'   => 'mumbos.shareholders',

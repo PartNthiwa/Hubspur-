@@ -39,6 +39,25 @@ class Shareholder extends Model implements ShareholderContract
     }
     protected $casts = [
         'is_active' => 'boolean',
+        'is_board_member' => 'boolean',
+        'share_units' => 'integer',
+        'capital_paid' => 'decimal:2',
+        'joined_at' => 'datetime',
+        'last_profile_update' => 'datetime',
+        'id_document_path' => 'string',
+        'passport_photo_path' => 'string',
+        'signature_path' => 'string',
+        'customer_id' => 'integer',
+        'share_class' => 'string',
+        'position' => 'string',
+        'full_name' => 'string',
+        'id_number' => 'string',
+        'kra_pin' => 'string',
+        'email' => 'string',
+        'phone' => 'string',
+        'postal_address' => 'string',
+        'physical_address' => 'string',
+        'city' => 'string', 
     ];
     protected $dates = [
         'joined_at',
@@ -61,5 +80,10 @@ class Shareholder extends Model implements ShareholderContract
                     ->withPivot('units')
                     ->withTimestamps();
     }
+
+public function getShareUnitsAttribute()
+{
+    return $this->shares->sum('pivot.units');
+}
 
 }

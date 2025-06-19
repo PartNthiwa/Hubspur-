@@ -300,4 +300,10 @@ class Customer extends Authenticatable implements CustomerContract
     {
         return CustomerFactory::new();
     }
+
+    public function shareholder()
+    {
+        return $this->hasOne(\Webkul\Mumbos\Models\Shareholder::class); 
+    }
+
 }
