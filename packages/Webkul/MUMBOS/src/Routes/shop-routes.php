@@ -27,7 +27,7 @@ use Webkul\MUMBOS\Http\Controllers\Shop\MUMBOSController;
 
 use Webkul\MUMBOS\Http\Controllers\Shop\ShareholderController;
 
-use Webkul\MUMBOS\Http\Controllers\Admin\ContributionController;
+use Webkul\MUMBOS\Http\Controllers\Shop\ContributionController;
 Route::group([
     'middleware' => ['web', 'shop'],
 ], function () {
@@ -47,7 +47,7 @@ Route::group([
     Route::get('/shareholder/dashboard', [ShareholderController::class, 'dashboard'])->name('shop.shareholders.dashboard');
     // Shareholder Forgot Password (optional)
     Route::get('/shareholder/forgot-password', [ShareholderController::class, 'showForgotPasswordForm'])->name('shop.shareholders.forgot-password');
-    // Route::post('/shareholder/forgot-password', [ShareholderController::class, 'sendResetLink'])->name('shop.shareholders.forgot-password.send');
+     Route::post('/shareholder/forgot-password', [ShareholderController::class, 'sendResetLink'])->name('shop.shareholders.forgot-password.send');
     Route::get('/shareholder/reset-password/{token}', [ShareholderController::class, 'showResetForm'])->name('shop.shareholders.password.reset.form');
 
     Route::post('/shareholder/reset-password', [ShareholderController::class, 'resetPassword'])->name('shop.shareholders.password.reset');
@@ -57,8 +57,7 @@ Route::group([
     Route::get('/shareholder/profile/edit', [ShareholderController::class, 'editProfile'])->name('shop.shareholders.profile.edit');
     
     Route::post('/shareholder/profile/update', [ShareholderController::class, 'updateProfile'])->name('shop.shareholders.profile.update');                  
-    Route::get('/shareholder/profile/change-password', [ShareholderController::class, 'showChangePasswordForm'])->name('shop.shareholders.profile.change-password');
-
+    Route::get('/shareholder/profile/change-password', [ShareholderController::class, 'showChangePasswordForm'])->name('shop.shareholders.profile.change-password.form');
     Route::post('/shareholder/profile/change-password', [ShareholderController::class, 'changePassword'])->name('shop.shareholders.profile.change-password');   
     // Shareholder Shares
     Route::get('/shareholder/shares', [ShareController::class, 'index'])->name('shop.shareholders.shares.index');
@@ -69,13 +68,13 @@ Route::group([
     Route::put('/shareholder/shares/{share}', [ShareController::class, 'update'])->name('shop.shareholders.shares.update');
     Route::delete('/shareholder/shares/{share}', [ShareController::class, 'destroy'])->name('shop.shareholders.shares.destroy');    
     // Shareholder Contributions
-    Route::get('/shareholder/contributions', [ShareholderContributionController::class, 'index'])->name('shop.shareholders.contributions.index');
-    Route::get('/shareholder/contributions/create', [ShareholderContributionController::class, 'create'])->name('shop.shareholders.contributions.create');
-    Route::post('/shareholder/contributions', [ShareholderContributionController::class, 'store'])->name('shop.shareholders.contributions.store');
-    Route::get('/shareholder/contributions/{contribution}', [ShareholderContributionController::class, 'show'])->name('shop.shareholders.contributions.show');
-    Route::get('/shareholder/contributions/{contribution}/edit', [ShareholderContributionController::class, 'edit'])->name('shop.shareholders.contributions.edit');
-    Route::put('/shareholder/contributions/{contribution}', [ShareholderContributionController::class, 'update'])->name('shop.shareholders.contributions.update');
-    Route::delete('/shareholder/contributions/{contribution}', [ShareholderContributionController::class, 'destroy'])->name('shop.shareholders.contributions.destroy'); 
+    Route::get('/shareholder/contributions', [ContributionController::class, 'index'])->name('shop.shareholders.contributions.index');
+    Route::get('/shareholder/contributions/create', [ContributionController::class, 'create'])->name('shop.shareholders.contributions.create');
+    Route::post('/shareholder/contributions', [ContributionController::class, 'store'])->name('shop.shareholders.contributions.store');
+    Route::get('/shareholder/contributions/{contribution}', [ContributionController::class, 'show'])->name('shop.shareholders.contributions.show');
+    Route::get('/shareholder/contributions/{contribution}/edit', [ContributionController::class, 'edit'])->name('shop.shareholders.contributions.edit');
+    Route::put('/shareholder/contributions/{contribution}', [ContributionController::class, 'update'])->name('shop.shareholders.contributions.update');
+    Route::delete('/shareholder/contributions/{contribution}', [ContributionController::class, 'destroy'])->name('shop.shareholders.contributions.destroy'); 
     // Shareholder Groups
 
 
@@ -103,4 +102,5 @@ Route::post('/logout', function (Request $request) {
 
     return redirect()->route('shop.shareholders.register.info'); 
 })->middleware(['web', 'shop'])->name('logout');
+
 

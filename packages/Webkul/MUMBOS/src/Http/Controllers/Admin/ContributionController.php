@@ -19,13 +19,15 @@ class ContributionController extends Controller
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
 
-  public function index()
-    {
-        $contributions = Contribution::with('shareholder.customer')
-            ->paginate(20);
+public function index()
+{
+    $contributions = Contribution::with('shareholder.customer')
+        ->whereHas('shareholder.customer') // only those that have a customer
+        ->paginate(20);
 
-        return view('mumbos::admin.contributions.index', compact('contributions'));
-    }
+    return view('mumbos::admin.contributions.index', compact('contributions'));
+}
+
 
 
     public function create()
@@ -187,6 +189,45 @@ public function previewReceipt(Contribution $contribution): StreamedResponse
         'Content-Type' => 'application/pdf',
         'Content-Disposition' => 'inline; filename="receipt_' . $contribution->id . '.pdf"',
     ]);
+}
+
+
+/**
+ * Approve a pending contribution.
+ */
+public function approve(Contribution $contribution)
+{
+    // Only allow approving pending items
+    if ($contribution->status !== 'pending') {
+        return back()->with('error','Only pending contributions can be approved.');
+    }
+
+    $contribution->update([
+        'status'         => 'approved',
+        'payment_status' => 'completed',
+        'approved_by'    => Auth::guard('admin')->id(),
+        'approved_at'    => now(),
+    ]);
+
+    return back()->with('success',"Contribution #{$contribution->id} approved.");
+}
+
+/**
+ * Reject a pending contribution.
+ */
+public function reject(Contribution $contribution)
+{
+    if ($contribution->status !== 'pending') {
+        return back()->with('error','Only pending contributions can be rejected.');
+    }
+
+    $contribution->update([
+        'status'      => 'Failed',
+        'approved_by' => Auth::guard('admin')->id(),
+        'approved_at' => now(),
+    ]);
+
+    return back()->with('success',"Contribution #{$contribution->id} rejected.");
 }
 
 }

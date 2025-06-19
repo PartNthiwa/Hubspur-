@@ -7,20 +7,7 @@ use Webkul\MUMBOS\Http\Controllers\Admin\ShareholderController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareholderGroupController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ContributionController;
 
-// Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/shareholders'], function () {
-//     
-//         Route::get('', 'index')->name('admin.shareholders.index');
-//         Route::get('create', 'create')->name('admin.shareholders.create');
-//         Route::get('/{shareholder}', [ShareholderController::class, 'show'])->name('admin.shareholders.show');
 
-//         Route::post('', 'store')->name('admin.shareholders.store');
-//         Route::get('{id}/edit', 'edit')->name('admin.shareholders.edit');
-//         Route::put('{id}', 'update')->name('admin.shareholders.update');
-//         Route::delete('{id}', 'destroy')->name('admin.shareholders.destroy');
-
-
-//     
-// });
 Route::group([
     'middleware' => ['web', 'admin'],
     'prefix' => 'admin/shareholders',
@@ -68,6 +55,8 @@ Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions
         Route::delete('{contribution}', 'destroy')->name('admin.contributions.destroy');
         Route::get('{contribution}', 'show')->name('admin.contributions.show');
 
+          Route::post('{contribution}/approve', 'approve') ->name('admin.contributions.approve');
+        Route::post('{contribution}/reject', 'reject') ->name('admin.contributions.reject');
         // Route::get('{contribution}/receipt-preview', 'previewReceipt')->name('admin.contributions.receipt-preview');
     });
 });

@@ -15,7 +15,7 @@ return new class extends Migration
                 $table->id();
                 $table->UnsignedInteger('shareholder_id')->constrained()->onDelete('cascade');
                 $table->decimal('amount', 12, 2);
-                $table->string('currency', 3)->default('KES');
+                $table->string('currency', 3)->nullable();
                 $table->enum('payment_method', ['cash','bank_transfer','mpesa','paypal'])->default('bank_transfer');
                 $table->string('payment_channel')->nullable();
                 $table->string('payment_reference')->nullable();

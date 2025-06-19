@@ -28,7 +28,13 @@
                 @forelse($contributions as $c)
                     <tr>
                         <td class="px-4 py-3">{{ $c->id }}</td>
-                        <td class="px-4 py-3">{{ $c->shareholder->customer->first_name }} {{ $c->shareholder->customer->last_name }}</td>
+    <td class="px-4 py-3">
+    {{ optional($c->shareholder)->customer
+         ? $c->shareholder->customer->first_name . ' ' . $c->shareholder->customer->last_name
+         : 'N/A' }}
+</td>
+
+
                         <td class="px-4 py-3">{{ number_format($c->amount, 2) }} {{ $c->currency }}</td>
                         <td class="px-4 py-3">{{ ucfirst(str_replace('_',' ',$c->payment_method)) }}</td>
                         <td class="px-4 py-3">
@@ -84,6 +90,48 @@
 
                             </div>
                         </td>
+                        <td class="px-4 py-3">
+                            <div class="flex items-center gap-x-2">
+
+                              
+
+                                @if($c->status === 'pending')
+                                    <form action="{{ route('admin.contributions.approve', $c) }}"
+                                        method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit"
+                                                class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
+                                            Approve
+                                        </button>
+                                    </form>
+
+                                    <form action="{{ route('admin.contributions.reject', $c) }}"
+                                        method="POST" class="inline">
+                                        @csrf
+                                       <button type="submit"
+                                            style="
+                                                background-color: #dc3545;
+                                                color:rgb(231, 6, 6);
+                                                padding: 0.25rem 0.5rem;
+                                                border: none;
+                                                border-radius: 0.25rem;
+                                                font-size: 0.75rem;
+                                                cursor: pointer;
+                                            "
+                                            onmouseover="this.style.backgroundColor='#c82333'"
+                                            onmouseout="this.style.backgroundColor='#dc3545'"
+                                    >
+                                        Reject
+                                    </button>
+
+
+                                    </form>
+                                @else
+                                    <span class="text-gray-500 text-xs uppercase">{{ $c->status }}</span>
+                                @endif
+                            </div>
+                        </td>
+
                     </tr>
                 @empty
                     <tr>

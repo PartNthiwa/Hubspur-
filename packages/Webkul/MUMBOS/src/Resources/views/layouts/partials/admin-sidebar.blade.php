@@ -17,7 +17,7 @@
                 </a>
             </li>
             <li>
-                <a href="{{ url('member.contributions') }}"
+                <a href="{{ route('shop.shareholders.contributions.index') }}"
                    class="inline-flex items-center text-black hover:text-green-300 transition">
                     <i class="fas fa-donate text-lg mr-3"></i>
                     My Contributions
