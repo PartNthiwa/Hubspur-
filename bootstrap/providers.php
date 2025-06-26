@@ -1,14 +1,8 @@
 <?php
 
 return [
-    /**
-     * Application service providers.
-     */
     App\Providers\AppServiceProvider::class,
-
-    /**
-     * Webkul's service providers.
-     */
+    App\Providers\PaymentGateway::class,
     Webkul\Admin\Providers\AdminServiceProvider::class,
     Webkul\Attribute\Providers\AttributeServiceProvider::class,
     Webkul\BookingProduct\Providers\BookingProductServiceProvider::class,
@@ -27,6 +21,7 @@ return [
     Webkul\GDPR\Providers\GDPRServiceProvider::class,
     Webkul\Installer\Providers\InstallerServiceProvider::class,
     Webkul\Inventory\Providers\InventoryServiceProvider::class,
+    Webkul\MUMBOS\Providers\MUMBOSServiceProvider::class,
     Webkul\MagicAI\Providers\MagicAIServiceProvider::class,
     Webkul\Marketing\Providers\MarketingServiceProvider::class,
     Webkul\Notification\Providers\NotificationServiceProvider::class,
@@ -34,6 +29,7 @@ return [
     Webkul\Paypal\Providers\PaypalServiceProvider::class,
     Webkul\Product\Providers\ProductServiceProvider::class,
     Webkul\Rule\Providers\RuleServiceProvider::class,
+    Webkul\SafPaymentMethod\Providers\SafPaymentMethodServiceProvider::class,
     Webkul\Sales\Providers\SalesServiceProvider::class,
     Webkul\Shipping\Providers\ShippingServiceProvider::class,
     Webkul\Shop\Providers\ShopServiceProvider::class,
@@ -43,6 +39,4 @@ return [
     Webkul\Tax\Providers\TaxServiceProvider::class,
     Webkul\Theme\Providers\ThemeServiceProvider::class,
     Webkul\User\Providers\UserServiceProvider::class,
-    Webkul\MUMBOS\Providers\MUMBOSServiceProvider::class,
-     Webkul\SafPaymentMethod\Providers\SafPaymentMethodServiceProvider::class,
 ];

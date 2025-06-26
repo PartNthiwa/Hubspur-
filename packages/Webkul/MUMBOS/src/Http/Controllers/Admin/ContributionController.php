@@ -11,18 +11,76 @@ use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\StreamedResponse;
 use Illuminate\Support\Facades\URL;
+use Illuminate\Support\Str;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Webkul\MUMBOS\Services\Payments\PaymentGatewayFactory;
+use Webkul\MUMBOS\Services\Payments\MpesaGateway;
 
 class ContributionController extends Controller
 {
-    use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
+public function recheckStatus(Contribution $contribution)
+{
+
+      \Log::info('RecheckStatus called for contribution: ' . $contribution->id);
+
+    if (empty($contribution->payment_reference)) {
+        return back()->withErrors([
+            'payment_reference' => 'No M-Pesa CheckoutRequestID found for this contribution.'
+        ]);
+    }
+
+    try {
+        $gateway = app(MpesaGateway::class);
+        $statusResponse = $gateway->checkTransactionStatus($contribution->payment_reference);
+
+        $status = $statusResponse['status'] ?? null;
+        $message = $statusResponse['message'] ?? 'Unknown response.';
+        
+        
+        if ($status === 'Success') {
+            $contribution->status = 'pending'; 
+            $contribution->payment_status = 'completed';
+            $contribution->payment_channel = 'mpesa';
+          
+            $contribution->paid_at = now();
+            $contribution->save();
+
+            return back()->with('success', $message);
+        } elseif ($status === 'Cancelled') {
+            $contribution->status = 'cancelled';
+            $contribution->payment_status = 'failed';
+              $contribution->payment_channel = 'mpesa';
+          
+            $contribution->save();
+
+            return back()->withErrors(['mpesa' => $message]);
+        } elseif ($status === 'Failed') {
+            $contribution->status = 'failed';
+            $contribution->payment_status = 'failed';
+              $contribution->payment_channel = 'mpesa';
+          
+            $contribution->save();
+
+            return back()->withErrors(['mpesa' => $message]);
+        } else {
+            return back()->withErrors(['mpesa' => 'Unknown transaction status.']);
+        }
+
+    } catch (\Exception $e) {
+        \Log::error('M-Pesa Transaction Status Error: ' . $e->getMessage());
+        return back()->withErrors(['mpesa' => 'Failed to check transaction status.']);
+    }
+}
 
 public function index()
 {
     $contributions = Contribution::with('shareholder.customer')
         ->whereHas('shareholder.customer') // only those that have a customer
+        ->orderBy('created_at', 'desc')    // order by newest first
         ->paginate(20);
 
     return view('mumbos::admin.contributions.index', compact('contributions'));
@@ -32,62 +90,144 @@ public function index()
 
     public function create()
     {
-        $shareholders = Shareholder::where('is_active', true)->get();
-
+        $shareholders = Shareholder::with('customer') 
+        ->where('is_active', true)
+        ->get();
         return view('mumbos::admin.contributions.create', compact('shareholders'));
     }
 
- public function store(Request $request)
+
+
+
+public function store(Request $request)
 {
-    // 1. Validate incoming data
     $data = $request->validate([
-        'shareholder_id'     => 'required|exists:shareholders,id',
-        'amount'             => 'required|numeric|min:0.01',
-        'currency'           => 'required|string|size:3',
-        'payment_method'     => 'required|in:cash,bank_transfer,mpesa,paypal',
-        'payment_channel'    => 'nullable|string',
-        'payment_reference'  => 'nullable|string',
-        'contributed_at'     => 'required|date',
-        'note'               => 'nullable|string',
+        'shareholder_id'         => 'required|exists:shareholders,id',
+        'amount'                 => 'required|numeric|min:0.01',
+        'currency'               => 'required|string|size:3',
+        'payment_method'         => 'required|in:cash,bank_transfer,mpesa,paypal',
+        'payment_channel'        => 'nullable|string',
+        'bank_payment_reference' => 'nullable|string',
+        'paypal_payment_reference' => 'nullable|string',
+        'contributed_at'         => 'required|date',
+        'note'                   => 'nullable|string',
+        'phone'                  => 'nullable|string',
     ]);
 
-    // 2. Handle optional original receipt upload (if any)
-    if ($request->hasFile('payment_receipt')) {
-        $data['payment_receipt'] = $request
-            ->file('payment_receipt')
-            ->store('contributions/receipts', 'public');
-    } else {
-        $data['payment_receipt'] = null;
+    $shareholder = \Webkul\MUMBOS\Models\Shareholder::find($data['shareholder_id']);
+    if (! $shareholder) {
+        return back()->withErrors(['shareholder_id' => 'Shareholder not found.']);
     }
 
-    // 3. Set audit & status fields
-    $data['recorded_by']    = Auth::guard('admin')->id();
-    $data['payment_status'] = 'pending';
-    $data['status']         = 'pending';
+    $shareholderNumber = $shareholder->shareholder_number ?? 'SH000';
+    $source = auth('admin')->check() ? 'ADM' : 'WEB';
 
-    // 4. Create the contribution
+    $reference = $this->generateTransactionRef($shareholderNumber, $source);
+
+    $data['payment_reference'] = $reference;
+
+    if ($data['payment_method'] === 'mpesa') {
+        if (empty($request->phone)) {
+            return back()->withErrors(['phone' => 'Phone number is required for M-Pesa payments.'])->withInput();
+        }
+
+         $phone = preg_replace('/\D/', '', $request->phone);
+    
+        if (Str::startsWith($phone, '07') && strlen($phone) === 10) {
+            $phone = '254' . substr($phone, 1);
+        } elseif (Str::startsWith($phone, '7') && strlen($phone) === 9) {
+            $phone = '254' . $phone;
+        } elseif (Str::startsWith($phone, '+254')) {
+            $phone = ltrim($phone, '+');
+        }
+
+        if (!Str::startsWith($phone, '2547') || strlen($phone) !== 12) {
+            return back()->withErrors(['phone' => 'Invalid phone number format. Use format 2547XXXXXXXX'])->withInput();
+        }
+
+        $mpesaResponse = app(MpesaGateway::class)->initiate([
+            'phone'             => $request->phone,
+            'amount'            => $data['amount'],
+            'shareholder_id'    => $data['shareholder_id'],
+            'payment_reference' => $reference,
+        ]);
+
+        // If response is a JSON string, decode it
+        if (is_string($mpesaResponse)) {
+            $decoded = json_decode($mpesaResponse, true);
+
+            if (json_last_error() !== JSON_ERROR_NONE) {
+                return back()->withErrors(['phone' => 'Invalid M-Pesa response received.'])->withInput();
+            }
+
+            $mpesaResponse = $decoded;
+        }
+
+        \Log::info('M-Pesa STK Response Parsed:', ['response' => $mpesaResponse]);
+
+        $checkoutRef = $mpesaResponse['checkoutRequestID'] ?? $mpesaResponse['reference'] ?? null;
+
+        if (!$checkoutRef) {
+            return back()->withErrors(['phone' => 'M-Pesa STK Push failed to initiate.'])->withInput();
+        }
+
+        $data['payment_reference'] = $checkoutRef;
+        $data['phone'] = $request->phone;
+
+    }
+
+    if ($data['payment_method'] === 'bank_transfer') {
+        $data['payment_reference'] = $request->bank_payment_reference;
+    } elseif ($data['payment_method'] === 'paypal') {
+        $data['payment_reference'] = $request->paypal_payment_reference;
+    }
+
+    // Receipt upload
+    if ($request->hasFile('payment_receipt')) {
+        $data['payment_receipt'] = $request->file('payment_receipt')->store('contributions/receipts', 'public');
+    }
+
+    $data['recorded_by'] = Auth::guard('admin')->id();
+    $data['payment_status'] = 'pending';
+    $data['status'] = 'pending';
+
     $contribution = Contribution::create($data);
 
-    // 5. Generate PDF Receipt
     $pdf = Pdf::loadView('mumbos::admin.contributions.receipt', [
         'contribution' => $contribution
     ]);
 
-    // 6. Store the PDF into storage/app/public/receipts/
     $fileName = 'receipts/contribution_' . $contribution->id . '.pdf';
     Storage::disk('public')->put($fileName, $pdf->output());
 
-    // 7. Now set the public URL and save the model again
-    $contribution->receipt_url = Storage::url($fileName); // e.g. "/storage/receipts/contribution_1.pdf"
-    $contribution->save();
+    $contribution->update(['receipt_url' => Storage::url($fileName)]);
 
-
-    // 8. Redirect back with success
-    return redirect()
-        ->route('admin.contributions.index')
-        ->with('success', 'Contribution recorded and receipt generated.');
+    return redirect()->route('admin.contributions.index')->with('success', 'Contribution recorded. M-Pesa STK Push sent if selected.');
 }
 
+public function generateTransactionRef(string $shareholderNumber, string $source = 'WEB'): string
+{
+   
+    if (auth('admin')->check()) {
+        $source = 'ADM';
+    } elseif (auth('customer')->check()) {
+        $source = 'WEB';
+    } elseif (request()->is('admin/*')) {
+        $source = 'ADM';
+    } else {
+        $source = 'SYS'; // fallback for unknowns (API, system jobs)
+    }
+
+    do {
+        $datePart   = now()->format('dmy');                // e.g. 260625
+        $randomPart = strtoupper(Str::random(5));          // e.g. 9D7AF
+
+        $reference = "TXN-{$source}-{$shareholderNumber}-{$datePart}-{$randomPart}";
+        
+    } while (Contribution::where('payment_reference', $reference)->exists()); // ensure it's unique
+
+    return $reference;
+}
    
 //     public function show(Contribution $contribution)
 //     {
@@ -114,6 +254,7 @@ public function show(Contribution $contribution)
 public function edit(Contribution $contribution)
     {
         $shareholders = Shareholder::where('is_active', true)->get();
+        // $contribution = Contribution::with('shareholder.customer')->findOrFail($id);
 
         return view('mumbos::admin.contributions.edit', compact('contribution', 'shareholders'));
     }

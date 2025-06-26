@@ -260,13 +260,27 @@ public function resetPassword(Request $request)
 
 public function dashboard()
 {
-    $shareholder = auth()->user()->shareholder;
-
-    if (!$shareholder) {
-        return redirect()->route('shop.shareholders.register.create')->with('error', 'Please register as a shareholder first.');
+    // Get the currently authenticated user
+    $user = auth()->user();
+    // Ensure user is logged in
+    if (!$user) {
+        return redirect()->route('shop.shareholders.login')->with('error', 'You must be logged in to access the dashboard.');
+    }
+     
+    // Ensure user is a shareholder
+    if (!$user->shareholder) {
+        return redirect()->route('shop.shareholders.register.create')
+                        ->with('error', 'Please register as a shareholder first.');
     }
 
-    // $shares = $shareholder->shares()->with('shareClass')->get();
+    $shareholder = $user->shareholder;
+    // Ensure shareholder is active
+    if (!$shareholder->is_active) {
+        return redirect()->route('shop.shareholders.register.create')
+                        ->with('error', 'Your shareholder account is not active. Please contact support.');
+    }
+
+    // Fetch shares and calculate totals
     $shares = $shareholder->shares()->get();
     if ($shares->isEmpty()) {
         return redirect()->route('shop.shareholders.register.create')->with('info', 'You have no shares registered. Please register for shares.');
@@ -346,7 +360,19 @@ public function register(Request $request)
 
 public function editProfile()
 {
-    $shareholder = Auth::user()->shareholder;
+    $user = auth()->user();
+
+    if (!$user) {
+        return redirect()->route('shop.shareholders.login')->with('error', 'You must be logged in to access the dashboard.');
+    }
+
+    if (!$user->shareholder) {
+        return redirect()->route('shop.shareholders.register.create')
+                         ->with('error', 'Please register as a shareholder first.');
+    }
+
+    $shareholder = $user->shareholder;
+
 
     if (! $shareholder) {
         return redirect()->route('shop.shareholders.register.create')->with('error', 'Please register as a shareholder.');
@@ -356,7 +382,19 @@ public function editProfile()
 }
 public function viewProfile()
 {
-    $shareholder = Auth::user()->shareholder;
+     $user = auth()->user();
+
+    if (!$user) {
+        return redirect()->route('shop.shareholders.login')->with('error', 'You must be logged in to access the dashboard.');
+    }
+
+    if (!$user->shareholder) {
+        return redirect()->route('shop.shareholders.register.create')
+                         ->with('error', 'Please register as a shareholder first.');
+    }
+
+    $shareholder = $user->shareholder;
+
 
     return view('mumbos::shop.shareholders.profile.show', compact('shareholder'));
 }

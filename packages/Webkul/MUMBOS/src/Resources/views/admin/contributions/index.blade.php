@@ -1,4 +1,5 @@
 <x-admin::layouts>
+  
     <div class="flex items-center justify-between mb-4 mt-4">
         <h2 class="text-lg font-semibold">Contributions</h2>
         <a href="{{ route('admin.contributions.create') }}"
@@ -10,7 +11,7 @@
             New Contribution
         </a>
     </div>
-
+  
     <div class="bg-white rounded-lg shadow overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-800">
             <thead class="bg-gray-100">
@@ -19,24 +20,28 @@
                     <th class="px-4 py-3 text-left font-semibold">Shareholder</th>
                     <th class="px-4 py-3 text-left font-semibold">Amount</th>
                     <th class="px-4 py-3 text-left font-semibold">Method</th>
-                    <th class="px-4 py-3 text-left font-semibold">Status</th>
+                        <th class="px-4 py-3 text-left font-semibold">Reference</th>
+                    <th class="px-4 py-3 text-left font-semibold">Payment Status</th>
+                        <th class="px-4 py-2">Recorded By</th>
+            <th class="px-4 py-2">Receipt</th>
                     <th class="px-4 py-3 text-left font-semibold">Date</th>
                     <th class="px-4 py-3 text-left font-semibold">Actions</th>
+                    <th class="px-4 py-3 text-left font-semibold">Approval Status</th>
+
                 </tr>
             </thead>
             <tbody class="divide-y divide-gray-100 bg-white">
                 @forelse($contributions as $c)
                     <tr>
                         <td class="px-4 py-3">{{ $c->id }}</td>
-    <td class="px-4 py-3">
-    {{ optional($c->shareholder)->customer
-         ? $c->shareholder->customer->first_name . ' ' . $c->shareholder->customer->last_name
-         : 'N/A' }}
-</td>
-
-
+                        <td class="px-4 py-3">
+                        {{ optional($c->shareholder)->customer
+                            ? $c->shareholder->customer->first_name . ' ' . $c->shareholder->customer->last_name
+                            : 'N/A' }}
+                    </td>
                         <td class="px-4 py-3">{{ number_format($c->amount, 2) }} {{ $c->currency }}</td>
                         <td class="px-4 py-3">{{ ucfirst(str_replace('_',' ',$c->payment_method)) }}</td>
+                           <td class="px-4 py-3">{{ $c->payment_reference ?? '-' }}</td>
                         <td class="px-4 py-3">
                             @if($c->payment_status == 'completed')
                                 <span class="bg-green-100 text-green-900 px-2 py-1 rounded text-xs">Completed</span>
@@ -46,6 +51,14 @@
                                 <span class="bg-yellow-100 text-yellow-900 px-2 py-1 rounded text-xs">Pending</span>
                             @endif
                         </td>
+                                      <td class="px-4 py-3">{{ optional($c->recordedBy)->name ?? '–' }}</td>
+                            <td class="px-4 py-2">
+                            @if($c->receipt_url)
+                                <a href="{{ $c->receipt_url }}" target="_blank" class="underline text-blue-600">PDF</a>
+                            @else
+                                <span class="text-gray-400">–</span>
+                            @endif
+                            </td>
                         <td class="px-4 py-3">{{ $c->contributed_at->format('Y-m-d') }}</td>
                         <td class="px-4 py-3">
                                   <div class="flex items-center gap-x-4">
@@ -88,46 +101,59 @@
                                     </button>
                                 </form>
 
-                            </div>
-                        </td>
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-x-2">
 
-                              
+                                    @if($c->payment_method === 'mpesa' && $c->payment_status === 'pending')
+                                  <form action="{{ route('admin.contributions.recheck', ['contribution' => $c->id]) }}" method="POST">
 
-                                @if($c->status === 'pending')
-                                    <form action="{{ route('admin.contributions.approve', $c) }}"
-                                        method="POST" class="inline">
                                         @csrf
-                                        <button type="submit"
-                                                class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
-                                            Approve
+                                        <button type="submit" class="bg-blue-500 text-white px-2 py-1 text-xs rounded hover:bg-blue-600">
+                                            Recheck M-Pesa
                                         </button>
                                     </form>
 
-                                    <form action="{{ route('admin.contributions.reject', $c) }}"
-                                        method="POST" class="inline">
-                                        @csrf
-                                       <button type="submit"
-                                            style="
-                                                background-color: #dc3545;
-                                                color:rgb(231, 6, 6);
-                                                padding: 0.25rem 0.5rem;
-                                                border: none;
-                                                border-radius: 0.25rem;
-                                                font-size: 0.75rem;
-                                                cursor: pointer;
-                                            "
-                                            onmouseover="this.style.backgroundColor='#c82333'"
-                                            onmouseout="this.style.backgroundColor='#dc3545'"
-                                    >
-                                        Reject
-                                    </button>
+                                @endif
 
+                            </div>
+                        </td>
+                   
 
-                                    </form>
+                       <td class="px-4 py-3">
+                            <div class="flex items-center gap-x-2">
+                                @if(auth('admin')->check() && in_array(auth('admin')->user()->role_id, [1, 2]))
+
+                                    @if($c->status === 'pending')
+                                        <form action="{{ route('admin.contributions.approve', $c) }}"
+                                            method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit"
+                                                    class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
+                                                Approve
+                                            </button>
+                                        </form>
+
+                                        <form action="{{ route('admin.contributions.reject', $c) }}"
+                                            method="POST" class="inline">
+                                            @csrf
+                                            <button type="submit"
+                                                    style="
+                                                        background-color: #dc3545;
+                                                        color:rgb(245, 242, 242);
+                                                        padding: 0.25rem 0.5rem;
+                                                        border: none;
+                                                        border-radius: 0.25rem;
+                                                        font-size: 0.75rem;
+                                                        cursor: pointer;
+                                                    "
+                                                    onmouseover="this.style.backgroundColor='#c82333'"
+                                                    onmouseout="this.style.backgroundColor='#dc3545'">
+                                                Reject
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="text-gray-900 text-xs uppercase">{{ $c->status }}</span>
+                                    @endif
                                 @else
-                                    <span class="text-gray-500 text-xs uppercase">{{ $c->status }}</span>
+                                    <span class="text-gray-900 text-xs uppercase">{{ $c->status }}</span>
                                 @endif
                             </div>
                         </td>
@@ -145,4 +171,6 @@
     <div class="mt-4">
         {{ $contributions->links() }}
     </div>
+
+
 </x-admin::layouts>

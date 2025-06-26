@@ -6,6 +6,10 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Event;
 use Webkul\MUMBOS\Models\Shareholder;
 use Webkul\MUMBOS\Models\Contribution;
+use Webkul\MUMBOS\Services\Payments\Contracts\PaymentGateway;
+use Webkul\MUMBOS\Services\Payments\BankTransferGateway;
+use Webkul\MUMBOS\Services\Payments\MpesaGateway;
+use Webkul\MUMBOS\Services\Payments\PayPalGateway;
 
 class MUMBOSServiceProvider extends ServiceProvider
 {
@@ -30,6 +34,7 @@ class MUMBOSServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__ . '/../Routes/admin-routes.php');
 
         $this->loadRoutesFrom(__DIR__ . '/../Routes/shop-routes.php');
+          $this->loadRoutesFrom(__DIR__ . '/../Routes/api-routes.php');
 
         $this->loadTranslationsFrom(__DIR__ . '/../Resources/lang', 'mumbos');
 
@@ -50,6 +55,18 @@ class MUMBOSServiceProvider extends ServiceProvider
     public function register()
     {
         $this->registerConfig();
+
+          $this->app->bind(
+            PaymentGateway::class,
+            function ($app) {
+                // Default fallback
+                return $app->make(BankTransferGateway::class);
+            }
+        );
+         $this->app->singleton(\Webkul\MUMBOS\Services\Payments\PaymentGatewayFactory::class, function($app) {
+            return new \Webkul\MUMBOS\Services\Payments\PaymentGatewayFactory($app);
+        });
+
     }
 
     /**

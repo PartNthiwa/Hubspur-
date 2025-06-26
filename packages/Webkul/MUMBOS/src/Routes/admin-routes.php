@@ -4,8 +4,23 @@ use Illuminate\Support\Facades\Route;
 use Webkul\MUMBOS\Http\Controllers\Admin\MUMBOSController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareholderController;
+use Webkul\MUMBOS\Http\Controllers\Admin\MpesaController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareholderGroupController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ContributionController;
+
+use Webkul\MUMBOS\Http\Controllers\Admin\MpesaCallbackController;
+
+
+Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions'], function () {
+    Route::controller(MpesaController::class)->group(function () {
+     Route::post('/mpesa/stk-push', [MpesaController::class, 'stkPush'])->name('mpesa.stk.push');
+      });
+});
+
+Route::post('/test-callback', function () {
+    \Log::info('Test Callback hit');
+    return response()->json(['status' => 'received']);
+});
 
 
 Route::group([
@@ -55,11 +70,22 @@ Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions
         Route::delete('{contribution}', 'destroy')->name('admin.contributions.destroy');
         Route::get('{contribution}', 'show')->name('admin.contributions.show');
 
+ 
           Route::post('{contribution}/approve', 'approve') ->name('admin.contributions.approve');
         Route::post('{contribution}/reject', 'reject') ->name('admin.contributions.reject');
         // Route::get('{contribution}/receipt-preview', 'previewReceipt')->name('admin.contributions.receipt-preview');
+   
+Route::post('{contribution}/recheck', [ContributionController::class, 'recheckStatus'])
+    ->name('admin.contributions.recheck');
+
+
+    Route::post('/admin/contributions/pay',  'initiate')->name('admin.contributions.pay');
+
     });
+
+
 });
+
 
 Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/mumbos'], function () {
     Route::controller(MUMBOSController::class)->group(function () {
@@ -74,3 +100,5 @@ Route::get('/admin/contributions/{contribution}/receipt-preview', [ContributionC
 
 Route::get('admin/contributions/{contribution}/receipt', [ContributionController::class, 'downloadReceipt'])
      ->name('admin.contributions.receipt.download');
+
+

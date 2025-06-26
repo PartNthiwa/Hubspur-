@@ -31,6 +31,8 @@ return new class extends Migration
                 $table->timestamp('approved_at')->nullable();
                 $table->text('note')->nullable();
                 $table->string('receipt_url')->nullable();
+                $table->string('mpesa_receipt_number')->nullable();
+                $table->string('phone', 20)->nullable();
                 $table->UnsignedInteger('created_by')->nullable()->constrained('admins')->onDelete('set null');
                 $table->UnsignedInteger('updated_by')->nullable()->constrained('admins')->onDelete('set null');
                 $table->UnsignedInteger('deleted_by')->nullable()->constrained('admins')->onDelete('set null');

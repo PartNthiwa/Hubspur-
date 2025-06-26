@@ -16,7 +16,7 @@
 
                 <a href="{{ route('shop.shareholders.contributions.create') }}"
                    class="bg-green-600 text-white px-4 py-2 rounded mb-4 inline-block">
-                   + {{ __('New Contribution') }}
+                   + {{ __('Make Contribution') }}
                 </a>
 
                 @if ($contributions->isEmpty())

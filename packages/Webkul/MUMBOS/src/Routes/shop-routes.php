@@ -41,6 +41,7 @@ Route::group([
    Route::post('/shares/register', [ShareholderController::class, 'register'])->name('shop.shares.register');
 
     // Shareholder Login
+    
     Route::get('/shareholder/login', [ShareholderController::class, 'showLoginForm'])->name('shop.shareholders.login.form');
     Route::post('/shareholder/login', [ShareholderController::class, 'login'])->name('shop.shareholders.login');
     Route::post('/shareholder/logout', [ShareholderController::class, 'logout'])->name('shop.shareholders.logout');

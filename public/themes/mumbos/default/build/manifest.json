@@ -1,16 +1,16 @@
 {
   "src/Resources/assets/css/app.css": {
-    "file": "assets/app-435a9f42.css",
+    "file": "assets/app-f90caef1.css",
     "isEntry": true,
     "src": "src/Resources/assets/css/app.css"
   },
-  "src/Resources/assets/images/icon-temp-active.svg": {
-    "file": "assets/icon-temp-active-0382a171.svg",
-    "src": "src/Resources/assets/images/icon-temp-active.svg"
+  "src/Resources/assets/images/icon-users.svg": {
+    "file": "assets/icon-users-199df769.svg",
+    "src": "src/Resources/assets/images/icon-users.svg"
   },
-  "src/Resources/assets/images/icon-temp.svg": {
-    "file": "assets/icon-temp-439e6462.svg",
-    "src": "src/Resources/assets/images/icon-temp.svg"
+  "src/Resources/assets/images/whyus.jpg": {
+    "file": "assets/whyus-9ee4feec.jpg",
+    "src": "src/Resources/assets/images/whyus.jpg"
   },
   "src/Resources/assets/js/app.js": {
     "file": "assets/app-4ed993c7.js",

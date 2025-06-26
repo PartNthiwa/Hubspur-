@@ -1,36 +1,49 @@
 <?php
 
 return [
-    // Level-1
+
+    /**
+     * Membership.
+     */
     [
         'key'   => 'mumbos',
-        'name'  => 'MUMBO Memberships',
+        'name'  => 'Membership',
         'route' => 'admin.mumbos.index',
-        'sort'  => 2,
-        'icon'  => 'icon-temp',
+        'sort'  => 8,
+        'icon'  => 'icon-customer-2',
     ],
 
+    /**
+     * Shares.
+     */
     [
-        'key' => 'mumbos.shares',
-        'name' => 'Shares',
+        'key'   => 'mumbos.shares',
+        'name'  => 'Shares',
         'route' => 'admin.shares.index',
-        'sort' => 3,
-        'icon' => 'whyus',
+        'sort'  => 10,
+        'icon'  => '',
     ],
+
+    /**
+     * Shareholders.
+     */
     [
         'key'   => 'mumbos.shareholders',
         'name'  => 'Shareholders',
         'route' => 'admin.shareholders.index',
-        'icon'  => 'far fa-users',
-        'sort'  => 4,
+        'icon'  => '',
+        'sort'  => 11,
     ],
 
+    /**
+     * Contributions.
+     */
     [
         'key'   => 'mumbos.contributions',
         'name'  => 'Contributions',
         'route' => 'admin.contributions.index',
-        'icon'  => 'far fa-chart-bar',
-        'sort'  => 5,
+        'icon'  => '',
+        'sort'  => 12,
     ],
-   
+
 ];
