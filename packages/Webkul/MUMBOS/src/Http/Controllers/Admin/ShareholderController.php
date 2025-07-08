@@ -8,6 +8,9 @@ use Webkul\MUMBOS\Models\MembershipType;
 use Webkul\MUMBOS\Models\Phase;
 use Webkul\MUMBOS\Models\Incentive;
 use Webkul\MUMBOS\Models\Share;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Password;
+use Illuminate\Support\Str;
 use Webkul\Customer\Models\Customer;
 use Webkul\MUMBOS\Models\Contribution;
 use Illuminate\Http\Request;
@@ -51,8 +54,11 @@ $membershipTypes = MembershipType::where('is_active', true)->get();
     ];
 
     $data = $request->validate([
-        'customer_id'        => 'required|exists:customers,id',
-        'full_name'          => 'nullable|string',
+
+        'customer_id'        => 'nullable|exists:customers,id',
+        'first_name'  => 'required|string|max:255',
+        'last_name'   => 'required|string|max:255',
+        'email'            => 'required|email|unique:customers,email',
         'phase_id'           => 'required|exists:phases,id',
         'memberships' => 'nullable|array',
         'memberships.*.amount_paid' => 'nullable|numeric|min:0',
@@ -76,14 +82,31 @@ $membershipTypes = MembershipType::where('is_active', true)->get();
         'position'           => 'nullable|string',
     ], $messages);
 
+    $customerId = $validated['customer_id'] ?? null;
+
+ if (!$customerId) {
+    $customer = Customer::create([
+        'first_name' => $data['first_name'],
+        'last_name'  => $data['last_name'],
+        'email'      => $data['email'],
+        'password'   => Hash::make(Str::random(12)), // temp password
+        'is_verified' => true,
+    ]);
+
+    // Send invite to set password
+    Password::broker()->sendResetLink(['email' => $customer->email]);
     
+    $customerId = $customer->id;
+}
+
+
+
+    $data['customer_id'] = $customer->id;
     $data['shareholder_number'] = $this->generateUniqueShareholderNumber();
     $data['is_active'] = $request->has('is_active');
     $data['is_board_member'] = $request->has('is_board_member');
 
- 
-
-   $shareholder = Shareholder::create($data);
+    $shareholder = Shareholder::create($data);
 
      // Save contribution
    if ($request->filled('memberships')) {
@@ -334,6 +357,23 @@ public function updateShareUnits(Request $request, $shareholderId, $shareId)
 
     return back()->with('success', 'Share units updated.');
 }
+public function sendResetLink($shareholderNumber)
+{
+    $shareholder = Shareholder::where('shareholder_number', $shareholderNumber)->firstOrFail();
 
+    if (empty($shareholder->email)) {
+        return back()->withErrors(['error' => 'This shareholder does not have an email address.']);
+    }
+
+    $customer = Customer::where('email', $shareholder->email)->first();
+
+    if (!$customer) {
+        return back()->withErrors(['error' => 'Linked customer not found.']);
+    }
+
+    Password::broker('customers')->sendResetLink(['email' => $customer->email]);
+
+    return back()->with('success', 'Password reset link sent to shareholder.');
+}
 
 }

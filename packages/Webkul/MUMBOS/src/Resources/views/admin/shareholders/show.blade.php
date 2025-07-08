@@ -15,7 +15,21 @@
             <div><strong>Shareholder #:</strong> {{ $shareholder->shareholder_number }}</div>
             <div><strong>ID Number:</strong> {{ $shareholder->id_number ?? '-' }}</div>
             <div><strong>Phone:</strong> {{ $shareholder->phone ?? '-' }}</div>
-            <div><strong>Email:</strong> {{ $shareholder->email ?? '-' }}</div>
+            <div>
+                <strong>Email:</strong> {{ $shareholder->email ?? '-' }}
+
+                @if ($shareholder->email)
+                    <form action="{{ route('admin.shareholders.send-reset-link', $shareholder->shareholder_number) }}"
+                          method="POST" class="mt-2 inline-block"
+                          onsubmit="return confirm('Send password reset link to this shareholder?');">
+                        @csrf
+                        <button type="submit"
+                                class="text-sm text-orange-600 hover:underline">
+                            Send Password Reset Link
+                        </button>
+                    </form>
+                @endif
+            </div>
             <div><strong>Joined At:</strong> {{ $shareholder->joined_at ?? '-' }}</div>
             <div><strong>Board Member:</strong> {{ $shareholder->is_board_member ? 'Yes' : 'No' }}</div>
             <div><strong>Position:</strong> {{ $shareholder->position ?? '-' }}</div>

@@ -1,41 +1,55 @@
 <div class="max-w-4xl mx-auto">
     <div class="grid grid-cols-2 gap-6 bg-white p-6 rounded-xl shadow-md">
-      {{-- Customer --}}
-  <div>
-        <label class="block text-sm font-medium text-gray-700 mb-1">
-            Customer <span class="text-red-500">*</span>
-        </label>
 
-        @if(isset($customers) && count($customers) > 0)
-            <select name="customer_id" required
-                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none">
-                @foreach($customers as $customer)
-                    <option value="{{ $customer->id }}"
-                        {{ old('customer_id', optional($shareholder)->customer_id) == $customer->id ? 'selected' : '' }}>
-                        {{ $customer->name }}
-                    </option>
-                @endforeach
-            </select>
-        @else
-            <input type="text"
-                value="No customers available. Please add a customer first."
-                readonly
-                class="w-full border border-red-300 bg-red-50 text-red-700 rounded-lg px-3 py-2 cursor-not-allowed text-sm" />
-        @endif
-    </div>
-
-
-        {{-- member Number --}}
+        {{-- First Name --}}
         <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">
-                Member Number <span class="text-red-500">*</span>
-            </label>
-                <input type="text text-gray-700 txt-sm font-italic"
-                name="shareholder_number"
-                value="{{ old('shareholder_number', optional($shareholder)->shareholder_number) }}"
-                placeholder="auto-generated" 
-                readonly
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed focus:ring-0 focus:outline-none" />
+            <label class="block text-sm font-medium text-gray-700 mb-1">First Name <span class="text-red-500">*</span></label>
+            <input type="text" name="first_name" value="{{ old('first_name', optional($shareholder)->first_name) }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+            @error('first_name')
+                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Last Name --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Last Name <span class="text-red-500">*</span></label>
+            <input type="text" name="last_name" value="{{ old('last_name', optional($shareholder)->last_name) }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+            @error('last_name')
+                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Email --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Email Address <span class="text-red-500">*</span></label>
+            <input type="email" name="email" value="{{ old('email', optional($shareholder)->email) }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" required />
+            @error('email')
+                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Phone --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
+            <input type="text" name="phone" value="{{ old('phone', optional($shareholder)->phone) }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            @error('phone')
+                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+
+        {{-- Member Number --}}
+        <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">Member Number <span class="text-red-500">*</span></label>
+            <input type="text"
+                   name="shareholder_number"
+                   value="{{ old('shareholder_number', optional($shareholder)->shareholder_number) }}"
+                   readonly
+                   placeholder="auto-generated"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 bg-gray-100 cursor-not-allowed focus:ring-0 focus:outline-none" />
         </div>
 
         {{-- ID Number --}}
@@ -44,10 +58,9 @@
             <input type="text" name="id_number" value="{{ old('id_number', optional($shareholder)->id_number) }}"
                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
             @error('id_number')
-                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                @enderror
-
-                </div>
+                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+            @enderror
+        </div>
 
         {{-- KRA PIN --}}
         <div>
@@ -56,41 +69,31 @@
                    class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
         </div>
 
-        {{-- Phone --}}
-        <div>
-            <label class="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-            <input type="text" name="phone" value="{{ old('phone', optional($shareholder)->phone) }}"
-                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-       
-            @error('phone')
-                    <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-                @enderror
-
-                </div>
         {{-- Joined At --}}
         <div>
             <label class="block text-sm font-medium text-gray-700 mb-1">Joined At</label>
-          <input type="date" name="joined_at"
-                value="{{ old('joined_at', optional($shareholder)->joined_at ? \Carbon\Carbon::parse($shareholder->joined_at)->format('Y-m-d') : '') }}"
-                class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
-        @error('joined_at')
-            <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
-        @enderror
-
+            <input type="date" name="joined_at"
+                   value="{{ old('joined_at', optional($shareholder)->joined_at ? \Carbon\Carbon::parse($shareholder->joined_at)->format('Y-m-d') : '') }}"
+                   class="w-full border border-gray-300 rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+            @error('joined_at')
+                <p class="text-sm text-red-500 mt-1">{{ $message }}</p>
+            @enderror
         </div>
 
         {{-- Is Active --}}
-        <div class="flex items-center space-x-2 mt-6">
-            <input type="checkbox" name="is_active" value="1" class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+        <div class="flex items-center mt-6">
+            <input type="checkbox" name="is_active" value="1"
+                   class="h-4 w-4 text-blue-600 border-gray-300 rounded"
                    {{ old('is_active', optional($shareholder)->is_active) ? 'checked' : '' }}>
-            <label class="text-sm font-medium text-gray-700">Is Active</label>
+            <label class="ml-2 text-sm font-medium text-gray-700">Is Active</label>
         </div>
 
         {{-- Is Board Member --}}
-        <div class="flex items-center space-x-2 mt-6">
-            <input type="checkbox" name="is_board_member" value="1" class="h-4 w-4 text-blue-600 border-gray-300 rounded"
+        <div class="flex items-center mt-6">
+            <input type="checkbox" name="is_board_member" value="1"
+                   class="h-4 w-4 text-blue-600 border-gray-300 rounded"
                    {{ old('is_board_member', optional($shareholder)->is_board_member) ? 'checked' : '' }}>
-            <label class="text-sm font-medium text-gray-700">Is Board Member</label>
+            <label class="ml-2 text-sm font-medium text-gray-700">Is Board Member</label>
         </div>
 
     </div>

@@ -39,6 +39,8 @@ Route::group([
         Route::get('/{shareholder}/edit', 'edit')->name('edit');
         Route::put('/{shareholder}', 'update')->name('update');
         Route::delete('/{shareholder}', 'destroy')->name('destroy');
+        Route::post('/{shareholderNumber}/send-reset-link',  'sendResetLink')
+            ->name('send-reset-link');
 
 
      Route::post('/{shareholder}/allocate-shares', 'allocateShares')->name('allocate-shares');
