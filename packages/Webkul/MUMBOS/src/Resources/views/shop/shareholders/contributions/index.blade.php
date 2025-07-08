@@ -48,7 +48,7 @@
                                      
                                     <td class="px-4 py-3">
                                         @if ($c->payment_receipt)
-                                            <button onclick="openModal('{{ Storage::url($c->payment_receipt) }}')"
+                                            <button onclick="openModal('{{ Storage::url($c->receipt_url) }}')"
                                                     class="text-blue-600 hover:underline">
                                                 View
                                             </button>

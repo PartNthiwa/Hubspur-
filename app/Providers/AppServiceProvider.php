@@ -43,6 +43,6 @@ class AppServiceProvider extends ServiceProvider
         //  if (request()->isSecure()) {
         //         URL::forceScheme('https');
         //     }
-          URL::forceScheme('https');
+        //   URL::forceScheme('https');
     }
 }

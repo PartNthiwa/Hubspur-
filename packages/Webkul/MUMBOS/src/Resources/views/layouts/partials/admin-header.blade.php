@@ -7,7 +7,7 @@
 
 
 <header class="bg-green-600 text-white shadow-md">
-    <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
+    <div class="max mx-auto px-6 py-4 flex justify-between items-center">
         <h1>    
               <a href="{{ url('/') }}"
                            class="inline-flex items-center text-base text-white ">
