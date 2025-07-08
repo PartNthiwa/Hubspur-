@@ -20,6 +20,48 @@
             @error('shareholder_id') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
+        <div class="mb-4">
+            <label for="phase_id" class="block text-sm font-medium text-gray-700">
+                Phase
+            </label>
+            <select name="phase_id" id="phase_id"
+                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                <option value="">Select Phase</option>
+                @foreach($phases as $phase)
+                    <option value="{{ $phase->id }}"
+                        {{ old('phase_id', $contribution->phase_id ?? '') == $phase->id ? 'selected' : '' }}>
+                        {{ $phase->name }} (KES {{ number_format($phase->share_value,2) }}/share)
+                    </option>
+                @endforeach
+            </select>
+            @error('phase_id')
+                <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+            @enderror
+        </div>
+        {{-- Contribution Type --}}
+<div>
+    <label for="type" class="block text-sm font-medium text-gray-700">Contribution Type</label>
+    <select name="type" id="type"
+            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+        <option value="">-- Select Type --</option>
+        <option value="membership" {{ old('type', $contribution->type ?? '') === 'membership' ? 'selected' : '' }}>
+            Membership
+        </option>
+         <option value="regular" {{ old('type', $contribution->type ?? '') === 'regular' ? 'selected' : '' }}>
+            Regular
+        </option>
+        <option value="capital" {{ old('type', $contribution->type ?? '') === 'capital' ? 'selected' : '' }}>
+            Capital
+        </option>
+        <option value="other" {{ old('type', $contribution->type ?? '') === 'other' ? 'selected' : '' }}>
+            Other
+        </option>
+    </select>
+    @error('type')
+        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
+    @enderror
+</div>
+
         <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
             <input type="number" step="0.01" name="amount" required

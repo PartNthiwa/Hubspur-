@@ -6,7 +6,10 @@ use Webkul\MUMBOS\Http\Controllers\Admin\ShareController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareholderController;
 use Webkul\MUMBOS\Http\Controllers\Admin\MpesaController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareholderGroupController;
+use Webkul\MUMBOS\Http\Controllers\Admin\MembershipTypeController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ContributionController;
+use Webkul\MUMBOS\Http\Controllers\Admin\PhaseController;
+use Webkul\MUMBOS\Http\Controllers\Admin\IncentiveController;
 
 use Webkul\MUMBOS\Http\Controllers\Admin\MpesaCallbackController;
 
@@ -15,11 +18,11 @@ Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions
     Route::controller(MpesaController::class)->group(function () {
      Route::post('/mpesa/stk-push', [MpesaController::class, 'stkPush'])->name('mpesa.stk.push');
       });
-});
 
-Route::post('/test-callback', function () {
-    \Log::info('Test Callback hit');
-    return response()->json(['status' => 'received']);
+
+    Route::resource('membership-types', MembershipTypeController::class, ['as' => 'admin']);
+    Route::resource('phases', PhaseController::class, ['as' => 'admin']);
+    Route::resource('incentives', IncentiveController::class, ['as' => 'admin']);
 });
 
 

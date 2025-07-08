@@ -9,10 +9,24 @@ return [
         'icon'  => 'icon-members',
     ],
      [
+        'key'   => 'mumbos.phases',
+        'name'  => 'Contribution Phases',
+        'route' => 'admin.phases.index',
+        'icon'  => '',
+        'sort'  => 3,
+    ],
+     [
+        'key'   => 'mumbos.incentives',
+        'name'  => 'Incentives',
+        'route' => 'admin.incentives.index',
+        'icon'  => '',
+        'sort'  => 4,
+    ],
+     [
         'key' => 'mumbos.shares',
         'name' => 'Shares',
         'route' => 'admin.shares.index',
-        'sort' => 3,
+        'sort' => 5,
         'icon' => '',
     ],
     [
@@ -20,7 +34,7 @@ return [
         'name'  => 'Members',
         'route' => 'admin.shareholders.index',
         'icon'  => '',
-        'sort'  => 4,
+        'sort'  => 6,
     ],
 
     [
@@ -28,6 +42,7 @@ return [
         'name'  => 'Contributions',
         'route' => 'admin.contributions.index',
         'icon'  => '',
-        'sort'  => 5,
+        'sort'  => 7,
     ],
+
 ];

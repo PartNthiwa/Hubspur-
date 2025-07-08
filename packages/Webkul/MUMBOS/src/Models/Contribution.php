@@ -29,7 +29,7 @@ class Contribution extends Model implements ContributionContract
      * @var array
      */
     protected $fillable = [
-        'shareholder_id', 'amount', 'currency', 'payment_method',
+        'shareholder_id','phase_id', 'amount','type', 'currency', 'payment_method',
         'payment_channel', 'payment_reference', 'payment_receipt',
         'payment_status', 'payment_metadata', 'payment_fee',
         'paid_at', 'contributed_at', 'status',
@@ -121,6 +121,11 @@ class Contribution extends Model implements ContributionContract
     public function scopeFailed($query)
     {
         return $query->where('payment_status', 'failed');
+    }
+
+      public function phase()
+    {
+        return $this->belongsTo(Phase::class);
     }
  
 }

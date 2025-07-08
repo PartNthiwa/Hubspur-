@@ -15,10 +15,12 @@
                     <th class="px-4 py-3 text-left font-semibold">#</th>
                     <th class="px-4 py-3 text-left font-semibold">Member Number</th>
                     <th class="px-4 py-3 text-left font-semibold">Full Name</th>
-                    <th class="px-4 py-3 text-left font-semibold">Share Class</th>
-                    <th class="px-4 py-3 text-left font-semibold">Share Units</th>
+                    <th class="px-4 py-3 text-left font-semibold">Membership Types</th>
+                    <th class="px-4 py-3 text-left font-semibold">Membership Paid</th>
+                    <th class="px-4 py-3 text-left font-semibold">Incentives</th>
+                    <th class="px-4 py-3 text-left font-semibold">Capital Shares</th>
+                    <th class="px-4 py-3 text-left font-semibold">Total Shares</th>
                     <th class="px-4 py-3 text-left font-semibold">Total Contributions</th>
-                
                     <th class="px-4 py-3 text-left font-semibold">Status</th>
                     <th class="px-4 py-3 text-left font-semibold">Actions</th>
                 </tr>
@@ -39,63 +41,95 @@
                     <tr>
                         <td class="px-4 py-3">{{ $shareholder->id }}</td>
                         <td class="px-4 py-3">{{ $shareholder->shareholder_number }}</td>
+                       
+
                         <td class="px-4 py-3">
                             {{ $shareholder->customer->first_name }} {{ $shareholder->customer->last_name }}
                         </td>
+ <td class="px-4 py-3">
+                        @forelse ($shareholder->membershipTypes as $membership)
+                            <span class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mr-1">
+                                {{ $membership->type }}
+                            </span>
+                        @empty
+                            <span class="text-gray-400 text-sm">–</span>
+                        @endforelse
+                    </td>
                         <td class="px-4 py-3">
-                            @forelse ($shareholder->shares as $share)
-                                @php
-                                    $colors = [
-                                        'bg-blue-100 text-blue-900',
-                                        'bg-green-100 text-green-900',
-                                        'bg-yellow-100 text-yellow-900',
-                                        'bg-purple-100 text-purple-900',
-                                        'bg-pink-100 text-pink-900',
-                                        'bg-red-100 text-red-900',
-                                        'bg-indigo-100 text-indigo-900',
-                                        'bg-teal-100 text-teal-900',
-                                        'bg-orange-100 text-orange-900',
-                                    ];
-                                    $randomColor = $colors[array_rand($colors)];
-                                @endphp
-                                <span class="inline-block px-2 py-1 text-xs font-semibold rounded {{ $randomColor }}">
-                                    {{ $share->class }}
+                            @php
+                                $membershipContribution = $shareholder->contributions
+                                    ->where('type', 'membership')
+                                    ->sum('amount');
+                            @endphp
+                            KES {{ number_format($membershipContribution, 2) }}
+                        </td>
+
+
+                        <td class="px-4 py-3">
+                            @forelse ($shareholder->incentives as $incentive)
+                                <span class="inline-block bg-indigo-100 text-black text-xs px-2 py-1 rounded mr-1">
+                                    {{ $incentive->type }}
                                 </span>
                             @empty
-                                <span class="text-gray-500">-</span>
+                                <span class="text-gray-400 text-sm">–</span>
                             @endforelse
                         </td>
 
-                 <td class="px-4 py-3">
-                    @forelse($shareholder->shares as $share)
-                        <div class="mb-2">
-                           <form action="{{ route('admin.shareholders.update-units', [$shareholder->id, $share->id]) }}"  class="flex items-center gap-2" method="POST">
+                    <td class="px-4 py-3">
+                @php
+                   
+                    $contributionAmount = $shareholder->contributions
+                        ->filter(function ($contribution) {
+                            return strtolower(trim($contribution->type)) !== 'membership';
+                        })
+                        ->sum('amount');
 
-                               
-                                @csrf
-                                @method('PUT')
+                    $shareValue = $shareholder->phase->share_value ?? 1000;
 
-                                <label class="text-xs font-medium text-gray-700">{{ $share->class }}:</label>
-                                <input type="number"
-                                    name="units"
-                                    value="{{ $share->pivot->units }}"
-                                    min="0"
-                                    class="w-20 border border-gray-300 rounded px-2 py-1 text-sm"
-                                    required>
+                    $totalShares = $shareValue > 0 ? $contributionAmount / $shareValue : 0;
+                @endphp
 
-                                <button type="submit"
-                                        class="text-blue-600 hover:text-blue-800 text-xs underline">
-                                    Update
-                                </button>
-                            </form>
-                        </div>
-                    @empty
-                        <span class="text-gray-500">No shares</span>
-                    @endforelse
-                </td>
+                {{ number_format($totalShares) }}
+            </td>
 
 
-                        <td class="px-4 py-3">{{ $shareholder->capital_paid }}</td>
+            <td class="px-4 py-3">
+    @php
+        $phase = $shareholder->phase;
+        $shareValue = $phase->share_value ?? 1000;
+
+        // Get total of all contributions that are not 'membership'
+        $contributionAmount = $shareholder->contributions
+            ->filter(fn($c) => strtolower(trim($c->type)) !== 'membership')
+            ->sum('amount');
+
+        $contributionShares = $shareValue > 0 ? $contributionAmount / $shareValue : 0;
+
+        // Get total units from incentives table (already stored in incentives)
+        $incentiveShares = $shareholder->incentives->sum('units');
+
+        // Total shares = contribution shares + incentive shares
+        $totalShares = $contributionShares + $incentiveShares;
+    @endphp
+
+    {{ number_format($totalShares) }}
+</td>
+
+
+
+
+        @php
+$nonMembershipTotal = $shareholder->contributions
+    ->filter(function ($contribution) {
+        return strtolower(trim($contribution->type)) !== 'membership';
+    })
+    ->sum('amount');
+@endphp
+<td class="px-4 py-3">
+KES {{ number_format($nonMembershipTotal, 2) }}
+</td>
+
+
                        <td class="px-4 py-3">
                             @if ($shareholder->is_active)
                                 <span style="background-color: #16a34a;" class="text-white text-xs px-2 py-1 rounded">
@@ -130,7 +164,7 @@
                                     </svg>
                                 </a>
 
-                            <button
+                            <!-- <button
                                 type="button"
                                 onclick="openModal('{{ $shareholder->id }}')"
                                 class="text-green-600 hover:text-green-800"
@@ -139,7 +173,7 @@
                                 <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
                                 </svg>
-                            </button>
+                            </button> -->
 
                                <form method="POST" action="{{ route('admin.shareholders.destroy', $shareholder->shareholder_number) }}"
 

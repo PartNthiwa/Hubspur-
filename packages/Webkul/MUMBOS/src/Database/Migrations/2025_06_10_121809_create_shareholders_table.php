@@ -12,45 +12,44 @@ return new class extends Migration
     public function up(): void
     {
       Schema::create('shareholders', function (Blueprint $table) {
-    $table->id();
+        $table->id();
+        $table->unsignedInteger('customer_id');
+        $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');         
+       $table->foreignId('membership_type_id')->nullable()->constrained('membership_types')->onDelete('set null');
 
-    // Relationships
-    $table->unsignedInteger('customer_id');
-   
-    // Basic shareholder identity
-    $table->string('shareholder_number')->unique();     // Internal ID like SH0001
-    $table->string('full_name')->nullable();            // Optional override from Customer
-    $table->string('id_number')->nullable();            // National ID / Passport
-    $table->string('kra_pin')->nullable();              // Tax PIN (if required in your region)
-    $table->string('email')->nullable();                // Override (optional)
-    $table->string('phone')->nullable();                // Override (optional)
+        // Identity
+        $table->string('shareholder_number')->unique();     
+        $table->string('full_name')->nullable();            
+        $table->string('id_number')->unique();           
+        $table->string('kra_pin')->nullable();              
+        $table->string('email')->unique();                
+        $table->string('phone')->nullable();               
 
-    // Address & location
-    $table->string('postal_address')->nullable();
-    $table->string('physical_address')->nullable();
-    $table->string('city')->nullable();
-    $table->string('country')->nullable();
+        // Address 
+        $table->string('postal_address')->nullable();
+        $table->string('physical_address')->nullable();
+        $table->string('city')->nullable();
+        $table->string('country')->nullable();
 
-    // Shareholding details
-    $table->string('share_class')->nullable();          // Common / Preferred
-    $table->integer('share_units')->default(0);         // Total shares owned
-    $table->decimal('capital_paid', 12, 2)->default(0); // Total amount contributed
-    $table->date('joined_at')->nullable();              // Date became shareholder
-    $table->boolean('is_active')->default(true);        // Active/inactive
+        // Shareholding 
+        $table->string('share_class')->nullable();          
+        $table->integer('share_units')->default(0);        
+        $table->decimal('capital_paid', 12, 2)->default(0);
+        $table->date('joined_at')->nullable();              
+        $table->boolean('is_active')->default(true);        
 
-    // Role or position
-    $table->boolean('is_board_member')->default(false); // For special permissions
-    $table->string('position')->nullable();             // Chair, Treasurer, etc.
+        // Role 
+        $table->boolean('is_board_member')->default(false); 
+        $table->string('position')->nullable();             
 
-    // KYC & documents
-    $table->string('id_document_path')->nullable();     // Uploaded ID (optional)
-    $table->string('passport_photo_path')->nullable();  // Profile photo
-    $table->string('signature_path')->nullable();       // Optional
+        // KYC
+        $table->string('id_document_path')->nullable();     
+        $table->string('passport_photo_path')->nullable();  
+        $table->string('signature_path')->nullable();       
 
-    // Tracking
-    $table->timestamp('last_profile_update')->nullable();
-     $table->foreign('customer_id')->references('id')->on('customers')->onDelete('cascade');         
-    $table->timestamps();
+        // Tracking
+        $table->timestamp('last_profile_update')->nullable();
+        $table->timestamps();
 });
 
     }

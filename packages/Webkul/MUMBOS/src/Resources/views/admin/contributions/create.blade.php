@@ -25,6 +25,7 @@
             @include('mumbos::admin.contributions.partials._form', [
              'contribution' => new \Webkul\MUMBOS\Models\Contribution, 
                 'shareholders' => $shareholders ?? [],
+                'phases'       => $phases ?? [],
             ])
 
             <div class="flex gap-3 pt-2">

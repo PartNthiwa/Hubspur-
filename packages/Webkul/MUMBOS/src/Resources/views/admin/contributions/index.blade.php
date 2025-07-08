@@ -19,6 +19,8 @@
                     <th class="px-4 py-3 text-left font-semibold">#</th>
                     <th class="px-4 py-3 text-left font-semibold">Shareholder</th>
                     <th class="px-4 py-3 text-left font-semibold">Amount</th>
+                    <th class="px-4 py-3 text-left font-semibold">Phase</th>
+
                     <th class="px-4 py-3 text-left font-semibold">Method</th>
                         <th class="px-4 py-3 text-left font-semibold">Reference</th>
                     <th class="px-4 py-3 text-left font-semibold">Payment Status</th>
@@ -40,6 +42,10 @@
                             : 'N/A' }}
                     </td>
                         <td class="px-4 py-3">{{ number_format($c->amount, 2) }} {{ $c->currency }}</td>
+                        <td class="px-4 py-3">
+                            {{ optional($c->phase)->name ?? '–' }}
+                        </td>
+
                         <td class="px-4 py-3">{{ ucfirst(str_replace('_',' ',$c->payment_method)) }}</td>
                            <td class="px-4 py-3">{{ $c->payment_reference ?? '-' }}</td>
                         <td class="px-4 py-3">

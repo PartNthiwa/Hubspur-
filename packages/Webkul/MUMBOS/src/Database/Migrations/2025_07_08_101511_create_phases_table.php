@@ -11,13 +11,12 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('shareholder_share', function (Blueprint $table) {
+        Schema::create('phases', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('shareholder_id')->constrained()->onDelete('cascade');
-            $table->foreignId('share_id')->constrained()->onDelete('cascade');
-            $table->integer('units');
+            $table->string('name');    
+            $table->decimal('share_value',12,2);
+            $table->string('description')->nullable(); 
             $table->timestamps();
-            $table->unique(['shareholder_id', 'share_id']);
         });
     }
 
@@ -26,6 +25,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('shareholder_share');
+        Schema::dropIfExists('phases');
     }
 };

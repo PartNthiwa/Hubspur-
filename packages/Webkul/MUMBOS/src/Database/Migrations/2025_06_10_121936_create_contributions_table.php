@@ -14,7 +14,10 @@ return new class extends Migration
             Schema::create('contributions', function (Blueprint $table) {
                 $table->id();
                 $table->UnsignedInteger('shareholder_id')->constrained()->onDelete('cascade');
+                $table->foreignId('phase_id')->constrained()->onDelete('restrict');
+                // Payment details
                 $table->decimal('amount', 12, 2);
+                $table->enum('type', ['membership', 'regular', 'capital','other'])->default('regular');
                 $table->string('currency', 3)->nullable();
                 $table->enum('payment_method', ['cash','bank_transfer','mpesa','paypal'])->default('bank_transfer');
                 $table->string('payment_channel')->nullable();
@@ -26,6 +29,8 @@ return new class extends Migration
                 $table->timestamp('paid_at')->nullable();
                 $table->date('contributed_at');
                 $table->enum('status', ['pending','approved','rejected'])->default('pending');
+                
+                // Admin tracking
                 $table->UnsignedInteger('recorded_by')->nullable()->constrained('admins')->onDelete('set null');
                 $table->UnsignedInteger('approved_by')->nullable()->constrained('admins')->onDelete('set null');
                 $table->timestamp('approved_at')->nullable();
@@ -40,16 +45,6 @@ return new class extends Migration
                 $table->timestamps();
 
                 // Indexes
-                $table->index('shareholder_id');
-                $table->index('status');
-                $table->index('payment_method');
-                $table->index('payment_status');
-                $table->index('contributed_at');
-                $table->index('paid_at');
-                $table->index('approved_at');
-                $table->index('recorded_by');
-                $table->index('approved_by');
-                $table->index('payment_reference');
                 $table->index(['shareholder_id','status','payment_method']);
             });
 

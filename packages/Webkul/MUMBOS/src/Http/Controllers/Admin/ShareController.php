@@ -98,4 +98,7 @@ class ShareController extends Controller
 
         return redirect()->route('admin.shares.index')->with('success', 'Share deleted successfully.');
     }
+
+  
+
 }

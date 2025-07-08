@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Webkul\MUMBOS\Models\Contribution;
 use Webkul\MUMBOS\Models\Shareholder;
+use Webkul\MUMBOS\Models\Phase;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\StreamedResponse;
@@ -78,7 +79,7 @@ public function recheckStatus(Contribution $contribution)
 
 public function index()
 {
-    $contributions = Contribution::with('shareholder.customer')
+    $contributions = Contribution::with('shareholder.customer','recordedBy', 'phase')
         ->whereHas('shareholder.customer') // only those that have a customer
         ->orderBy('created_at', 'desc')    // order by newest first
         ->paginate(20);
@@ -93,7 +94,8 @@ public function index()
         $shareholders = Shareholder::with('customer') 
         ->where('is_active', true)
         ->get();
-        return view('mumbos::admin.contributions.create', compact('shareholders'));
+         $phases       = Phase::orderBy('id')->get();
+        return view('mumbos::admin.contributions.create', compact('shareholders','phases'));
     }
 
 
@@ -103,7 +105,9 @@ public function store(Request $request)
 {
     $data = $request->validate([
         'shareholder_id'         => 'required|exists:shareholders,id',
+        'phase_id'         => 'required|exists:phases,id',
         'amount'                 => 'required|numeric|min:0.01',
+        'type'           => 'required|in:membership,regular,capital,other',
         'currency'               => 'required|string|size:3',
         'payment_method'         => 'required|in:cash,bank_transfer,mpesa,paypal',
         'payment_channel'        => 'nullable|string',
@@ -253,10 +257,10 @@ public function show(Contribution $contribution)
 
 public function edit(Contribution $contribution)
     {
-        $shareholders = Shareholder::where('is_active', true)->get();
-        // $contribution = Contribution::with('shareholder.customer')->findOrFail($id);
-
-        return view('mumbos::admin.contributions.edit', compact('contribution', 'shareholders'));
+    $contribution->load(['shareholder.customer', 'phase', 'recordedBy']);
+    $shareholders = Shareholder::with('customer')->where('is_active', true)->get();
+     $phases = Phase::orderBy('created_at', 'desc')->get();
+    return view('mumbos::admin.contributions.edit', compact('contribution', 'shareholders','phases'));
     }
 
   

@@ -3,6 +3,8 @@
 namespace Webkul\MUMBOS\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Webkul\MUMBOS\Models\Incentive;
+use Webkul\MUMBOS\Models\MembershipType;
 use Webkul\MUMBOS\Contracts\Shareholder as ShareholderContract;
 
 class Shareholder extends Model implements ShareholderContract
@@ -80,10 +82,98 @@ class Shareholder extends Model implements ShareholderContract
                     ->withPivot('units')
                     ->withTimestamps();
     }
+  
 
-public function getShareUnitsAttribute()
+ /** Only “first” incentives */
+    public function firstIncentives()
+    {
+        return $this->incentives()->first();
+    }
+
+    /** Only “second” incentives */
+    public function secondIncentives()
+    {
+        return $this->incentives()->second();
+    }
+
+    /** Only “third” incentives (if you use it) */
+    public function thirdIncentives()
+    {
+        return $this->incentives()->third();
+    }
+    /** Only “third” incentives (if you use it) */
+    public function otherIncentives()
+    {
+        return $this->incentives()->other();
+    }
+
+
+
+
+    // ------------------------------------------------------------------------
+    // Computed accessors
+    // ------------------------------------------------------------------------
+
+    /** Sum of first-incentive units */
+    public function getFirstIncentiveUnitsAttribute()
+    {
+        return $this->firstIncentives->sum('units');
+    }
+
+    /** Sum of second-incentive units */
+    public function getSecondIncentiveUnitsAttribute()
+    {
+        return $this->secondIncentives->sum('units');
+    }
+
+    /** Sum of third-incentive units */
+    public function getThirdIncentiveUnitsAttribute()
+    {
+        return $this->thirdIncentives->sum('units');
+    }
+   public function getOtherIncentiveUnitsAttribute()
+    {
+        return $this->otherIncentives->sum('units');
+    }
+    /** Total of all incentive units (fallback) */
+    public function getIncentiveUnitsAttribute()
+    {
+        return $this->incentives->sum('units');
+    }
+
+public function incentives()
 {
-    return $this->shares->sum('pivot.units');
+    return $this->belongsToMany(Incentive::class, 'shareholder_incentive')
+       ->withTimestamps();
 }
+    
+     /** Capital shares computed from contributions + their phase value */
+public function getCapitalShareUnitsAttribute()
+    {
+        return $this->contributions
+            ->sum(function($contrib) {
+                $phaseValue = optional($contrib->phase)->share_value;
+                if (! $phaseValue) {
+                    return 0;
+                }
+                // compute raw shares, then round to nearest whole share
+                $rawShares = $contrib->amount / $phaseValue;
+                return (int) round($rawShares, 0, PHP_ROUND_HALF_UP);
+            });
+    }
+
+
+
+
+    public function membershipTypes()
+    {
+        return $this->belongsToMany(MembershipType::class, 'membership_type_shareholder')
+            ->withPivot('amount_paid', 'joined_at')
+            ->withTimestamps();
+    }
+    public function phase()
+    {
+        return $this->belongsTo(Phase::class);
+    }
 
 }
