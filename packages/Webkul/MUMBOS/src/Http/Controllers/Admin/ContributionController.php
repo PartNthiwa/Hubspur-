@@ -126,17 +126,18 @@ public function store(Request $request)
         return back()->withErrors(['shareholder_id' => 'Shareholder not found.']);
     }
 
-    $shareholderNumber = $shareholder->shareholder_number ?? 'SH000';
+    $shareholderNumber = $shareholder->shareholder_number ?? 'M-SH000';
     $source = auth('admin')->check() ? 'ADM' : 'WEB';
 
     $reference = $this->generateTransactionRef($shareholderNumber, $source);
 
     $data['payment_reference'] = $reference;
 
-    if ($data['payment_method'] === 'mpesa') {
+      if ($data['payment_method'] === 'mpesa') {
         if (empty($request->phone)) {
             return back()->withErrors(['phone' => 'Phone number is required for M-Pesa payments.'])->withInput();
         }
+
 
          $phone = preg_replace('/\D/', '', $request->phone);
     
@@ -152,7 +153,7 @@ public function store(Request $request)
             return back()->withErrors(['phone' => 'Invalid phone number format. Use format 2547XXXXXXXX'])->withInput();
         }
 
-        $mpesaResponse = app(MpesaGateway::class)->initiate([
+       $mpesaResponse = app(MpesaGateway::class)->initiate([
             'phone'             => $request->phone,
             'amount'            => $data['amount'],
             'shareholder_id'    => $data['shareholder_id'],
@@ -173,7 +174,6 @@ public function store(Request $request)
         \Log::info('M-Pesa STK Response Parsed:', ['response' => $mpesaResponse]);
 
         $checkoutRef = $mpesaResponse['checkoutRequestID'] ?? $mpesaResponse['reference'] ?? null;
-
         if (!$checkoutRef) {
             return back()->withErrors(['phone' => 'M-Pesa STK Push failed to initiate.'])->withInput();
         }

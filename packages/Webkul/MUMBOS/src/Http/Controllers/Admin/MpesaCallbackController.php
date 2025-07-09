@@ -32,6 +32,4 @@ public function handleCallback(Request $request)
     return response()->json(['message' => 'Callback processed'], 200);
 }
 
-
-
 }
