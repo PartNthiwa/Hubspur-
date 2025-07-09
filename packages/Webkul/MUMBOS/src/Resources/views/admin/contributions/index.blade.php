@@ -125,6 +125,14 @@
 
                        <td class="px-4 py-3">
                             <div class="flex items-center gap-x-2">
+                                @php
+                                    $statusClasses = match($c->payment_status) {
+                                        'pending' => 'bg-yellow-100 text-yellow-800',
+                                        'approved' => 'bg-green-100 text-green-800',
+                                        'failed', 'rejected' => 'bg-red-100 text-red-800',
+                                        default => 'bg-gray-100 text-gray-800'
+                                    };
+                                @endphp
                                 @if(auth('admin')->check() && in_array(auth('admin')->user()->role_id, [1, 2]))
 
                                     @if($c->status === 'pending')
@@ -156,10 +164,12 @@
                                             </button>
                                         </form>
                                     @else
-                                        <span class="text-gray-900 text-xs uppercase">{{ $c->status }}</span>
+                                        <span class="text-green-600 text-xs uppercase">{{ $c->status }}</span>
                                     @endif
                                 @else
-                                    <span class="text-gray-900 text-xs uppercase">{{ $c->status }}</span>
+                                    <span class="px-2 py-1 text-red-600 rounded text-xs uppercase font-semibold {{ $statusClasses }}">
+                                        {{ $c->payment_status }}
+                                    </span>
                                 @endif
                             </div>
                         </td>

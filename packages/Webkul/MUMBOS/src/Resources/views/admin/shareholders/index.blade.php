@@ -17,6 +17,7 @@
                     <th class="px-4 py-3 text-left font-semibold">Full Name</th>
                     <th class="px-4 py-3 text-left font-semibold">Membership Types</th>
                     <th class="px-4 py-3 text-left font-semibold">Membership Paid</th>
+                     <th class="px-4 py-3 text-left font-semibold">Capital Contribution</th>
                     <th class="px-4 py-3 text-left font-semibold">Incentives</th>
                     <th class="px-4 py-3 text-left font-semibold">Capital Shares</th>
                     <th class="px-4 py-3 text-left font-semibold">Total Shares</th>
@@ -57,11 +58,23 @@
                     </td>
                         <td class="px-4 py-3">
                             @php
-                                $membershipContribution = $shareholder->contributions
-                                    ->where('type', 'membership')
-                                    ->sum('amount');
+                               $membershipContribution = $shareholder->contributions
+                                ->where('type', 'membership')
+                                ->where('status', 'approved')
+                                ->sum('amount');
+
                             @endphp
                             KES {{ number_format($membershipContribution, 2) }}
+                        </td>
+                        <td class="px-4 py-3">
+                            @php
+                                $capitalContribution = $shareholder->contributions
+                                    ->where('type', 'capital')
+                                    ->where('status', 'approved')
+                                    ->sum('amount');
+                            @endphp
+
+                            KES {{ number_format($capitalContribution, 2) }}
                         </td>
 
 
@@ -78,11 +91,12 @@
                     <td class="px-4 py-3">
                 @php
                    
-                    $contributionAmount = $shareholder->contributions
-                        ->filter(function ($contribution) {
-                            return strtolower(trim($contribution->type)) !== 'membership';
-                        })
-                        ->sum('amount');
+                  $contributionAmount = $shareholder->contributions
+                    ->filter(function ($contribution) {
+                        return strtolower(trim($contribution->type)) !== 'membership' && $contribution->status === 'approved';
+                    })
+                    ->sum('amount');
+
 
                     $shareValue = $shareholder->phase->share_value ?? 1000;
 
@@ -98,10 +112,12 @@
         $phase = $shareholder->phase;
         $shareValue = $phase->share_value ?? 1000;
 
-        // Get total of all contributions that are not 'membership'
-        $contributionAmount = $shareholder->contributions
-            ->filter(fn($c) => strtolower(trim($c->type)) !== 'membership')
-            ->sum('amount');
+      $nonMembershipTotal = $shareholder->contributions
+    ->filter(function ($contribution) {
+        return strtolower(trim($contribution->type)) !== 'membership' && $contribution->status === 'approved';
+    })
+    ->sum('amount');
+
 
         $contributionShares = $shareValue > 0 ? $contributionAmount / $shareValue : 0;
 
@@ -119,11 +135,10 @@
 
 
         @php
-$nonMembershipTotal = $shareholder->contributions
-    ->filter(function ($contribution) {
-        return strtolower(trim($contribution->type)) !== 'membership';
-    })
+$contributionAmount = $shareholder->contributions
+    ->filter(fn($c) => strtolower(trim($c->type)) !== 'membership' && $c->status === 'approved')
     ->sum('amount');
+
 @endphp
 <td class="px-4 py-3">
 KES {{ number_format($nonMembershipTotal, 2) }}

@@ -51,8 +51,10 @@
                             <input type="checkbox" id="remember" name="remember" class="accent-navyBlue">
                             <label for="remember" class="text-zinc-500 text-sm">Remember me</label>
                         </div>
-                        <a href="{{ route('shop.shareholders.forgot-password') }}"
-                           class="text-sm text-black hover:underline">Forgot Password?</a>
+                       <a href="#" class="text-sm text-red-600 hover:underline">
+                            <small>Never Share Your Password!</small>
+                        </a>
+
                     </div>
 
                     <button type="submit"
@@ -62,11 +64,10 @@
                 </form>
             </div>
 
-            <p class="mt-5 font-medium text-zinc-500 max-sm:text-center max-sm:text-sm">
-                New shareholder? <a class="text-navyBlue hover:underline" href="{{ route('shop.shareholders.register.create') }}">
-                    Register here
-                </a>
-            </p>
+           <p class="mt-5 font-medium text-zinc-500 max-sm:text-center max-sm:text-sm">
+            Want to become a shareholder? <a href="{{ route('contact') }}" class="text-navyBlue hover:underline">Contact us</a>.
+        </p>
+
         </div>
 
         <p class="mb-4 mt-8 text-center text-xs text-zinc-500">

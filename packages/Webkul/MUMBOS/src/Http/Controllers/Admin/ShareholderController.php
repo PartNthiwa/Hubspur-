@@ -8,6 +8,9 @@ use Webkul\MUMBOS\Models\MembershipType;
 use Webkul\MUMBOS\Models\Phase;
 use Webkul\MUMBOS\Models\Incentive;
 use Webkul\MUMBOS\Models\Share;
+use Webkul\MUMBOS\Models\ContactUs;
+use Illuminate\Support\Facades\Log;
+
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -20,6 +23,8 @@ use Webkul\MUMBOS\Http\Requests\ShareholderRequest;
 use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Notifications\ShareholderInvitationNotification;
+
 
 class ShareholderController extends Controller
 {
@@ -32,6 +37,27 @@ class ShareholderController extends Controller
 
         return view('mumbos::admin.shareholders.index', compact('shareholders', 'shares'));
     }
+
+
+public function contactUs()
+{
+    $messages = ContactUs::latest()->paginate(20);
+    return view('mumbos::admin.shareholders.contact-us', compact('messages'));
+}
+public function showContactMessage($id)
+{
+    $message = ContactUs::findOrFail($id);
+    return view('mumbos::admin.shareholders.contact-us-show', compact('message'));
+}
+
+public function deleteContactMessage($id)
+{
+    $message = ContactUs::findOrFail($id);
+    $message->delete();
+
+    return redirect()->route('admin.shareholders.contact-us')->with('success', 'Message deleted successfully.');
+}
+
 
   public function create()
 {
@@ -93,8 +119,9 @@ $membershipTypes = MembershipType::where('is_active', true)->get();
         'is_verified' => true,
     ]);
 
+    $token = Password::broker('customers')->createToken($customer);
     // Send invite to set password
-    Password::broker()->sendResetLink(['email' => $customer->email]);
+    $customer->notify(new ShareholderInvitationNotification($token));
     
     $customerId = $customer->id;
 }
@@ -115,6 +142,7 @@ $membershipTypes = MembershipType::where('is_active', true)->get();
             // Save to pivot table
             $shareholder->membershipTypes()->attach($membershipTypeId, [
                 'amount_paid' => $membershipData['amount_paid'],
+                //  'phase_id'    => $request->input('phase_id'),
             ]);
 
             // Also log the contribution
@@ -127,7 +155,7 @@ $membershipTypes = MembershipType::where('is_active', true)->get();
                 'payment_status' => 'completed',
                 'currency'       => 'KES',
                 'contributed_at' => now(),
-                'status'         => 'approved',
+                'status'         => 'pending',
                 'recorded_by'    => auth('admin')->id(),
                 'notes'          => 'Membership Type ID: ' . $membershipTypeId,
             ]);
@@ -182,9 +210,10 @@ public function show(Shareholder $shareholder)
     return view('mumbos::admin.shareholders.show', compact('shareholder'));
 }
 
+
 public function update(Request $request, Shareholder $shareholder)
 {
-
+    Log::info('Update called for shareholder:', ['shareholder' => $shareholder->id]);
 
     $messages = [
         'phone.unique' => 'The mobile number has already been taken.',
@@ -192,13 +221,15 @@ public function update(Request $request, Shareholder $shareholder)
         'joined_at.before_or_equal' => 'The joining date cannot be in the future.',
     ];
 
+    Log::info('Running validation...');
+
     $data = $request->validate([
-        'shareholder_number' => 'required|unique:shareholders,shareholder_number,' . $shareholder->id,
+        // 'shareholder_number' => 'required|unique:shareholders,shareholder_number,' . $shareholder->id . ',id',
         'full_name'          => 'nullable|string',
-        'id_number'          => 'nullable|string|unique:shareholders,id_number,' . $shareholder->id,
+        'id_number'          => 'nullable|string|unique:shareholders,id_number,' . $shareholder->id . ',id',
         'kra_pin'            => 'nullable|string',
         'email'              => 'nullable|email',
-        'phone'              => 'nullable|string|unique:shareholders,phone,' . $shareholder->id,
+        'phone'              => 'nullable|string|unique:shareholders,phone,' . $shareholder->id . ',id',
         'postal_address'     => 'nullable|string',
         'physical_address'   => 'nullable|string',
         'city'               => 'nullable|string',
@@ -216,38 +247,51 @@ public function update(Request $request, Shareholder $shareholder)
         'membership_types.*' => 'exists:membership_types,id',
     ], $messages);
 
+    Log::info('Validation passed.', $data);
+
     $data['is_active'] = $request->has('is_active');
     $data['is_board_member'] = $request->has('is_board_member');
 
-    
+    Log::info('Updating shareholder...', ['data' => $data]);
+
     $shareholder->update($data);
+
+    Log::info('Shareholder updated.');
 
     $shareholder->incentives()->sync($request->input('incentives', []));
 
-   if ($request->filled('memberships')) {
-    foreach ($request->input('memberships') as $membershipId => $details) {
-        if (isset($details['selected']) && $details['selected']) {
-            $amount = isset($details['amount_paid']) ? floatval($details['amount_paid']) : 0;
+    if ($request->filled('memberships')) {
+        Log::info('Handling memberships...');
+        foreach ($request->input('memberships') as $membershipId => $details) {
+            if (isset($details['selected']) && $details['selected']) {
+                $amount = isset($details['amount_paid']) ? floatval($details['amount_paid']) : 0;
 
-            // Attach to pivot table (without detaching existing)
-            $shareholder->membershipTypes()->attach($membershipId);
+                Log::info('Syncing membership type', ['membership_id' => $membershipId, 'amount' => $amount]);
 
-            // Record the contribution
-            Contribution::create([
-                'shareholder_id' => $shareholder->id,
-                'amount'         => $amount,
-                'type'           => 'membership',
-              'phase_id' => $request->input('phase_id'),
-                'payment_method' => 'manual',
-                'payment_status' => 'completed',
-                'currency'       => 'KES',
-                'contributed_at' => now(),
-                'status'         => 'approved',
-                'recorded_by'    => auth('admin')->id(),
-            ]);
+                $shareholder->membershipTypes()->syncWithoutDetaching([
+                    $membershipId => [
+                        'amount_paid' => $amount,
+                        // 'phase_id'    => $request->input('phase_id'),
+                    ],
+                ]);
+
+                Contribution::create([
+                    'shareholder_id' => $shareholder->id,
+                    'amount'         => $amount,
+                    'type'           => 'membership',
+                    'phase_id'       => $request->input('phase_id'),
+                    'payment_method' => 'manual',
+                    'payment_status' => 'completed',
+                    'currency'       => 'KES',
+                    'contributed_at' => now(),
+                    'status'         => 'pending',
+                    'recorded_by'    => auth('admin')->id(),
+                ]);
+            }
         }
     }
-}
+
+    Log::info('Update completed. Redirecting...');
 
     return redirect()->route('admin.shareholders.index')->with('success', 'Shareholder updated successfully.');
 }
@@ -371,9 +415,17 @@ public function sendResetLink($shareholderNumber)
         return back()->withErrors(['error' => 'Linked customer not found.']);
     }
 
-    Password::broker('customers')->sendResetLink(['email' => $customer->email]);
+    // Send password reset link via the customer password broker
+    Password::broker('shareholders')->sendResetLink(['email' => $customer->email]);
+
+    // Log invitation and enable access
+    $shareholder->update([
+        'password_invitation_sent_at' => now(),
+        'can_reset_password' => true,
+    ]);
 
     return back()->with('success', 'Password reset link sent to shareholder.');
 }
+
 
 }

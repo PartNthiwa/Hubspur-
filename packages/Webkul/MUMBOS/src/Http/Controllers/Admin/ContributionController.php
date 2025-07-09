@@ -18,6 +18,9 @@ use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Webkul\MUMBOS\Services\Payments\PaymentGatewayFactory;
 use Webkul\MUMBOS\Services\Payments\MpesaGateway;
+use App\Mail\ContributionApprovedMail;
+use App\Mail\ContributionSubmittedMail;
+use App\Mail\ContributionRejectedMail;
 
 class ContributionController extends Controller
 {
@@ -205,6 +208,8 @@ public function store(Request $request)
     Storage::disk('public')->put($fileName, $pdf->output());
 
     $contribution->update(['receipt_url' => Storage::url($fileName)]);
+    \Mail::to($shareholder->customer->email)
+            ->queue(new \App\Mail\ContributionSubmittedMail($contribution));
 
     return redirect()->route('admin.contributions.index')->with('success', 'Contribution recorded. M-Pesa STK Push sent if selected.');
 }
@@ -342,11 +347,11 @@ public function previewReceipt(Contribution $contribution): StreamedResponse
  */
 public function approve(Contribution $contribution)
 {
-    // Only allow approving pending items
     if ($contribution->status !== 'pending') {
-        return back()->with('error','Only pending contributions can be approved.');
+        return back()->with('error', 'Only pending contributions can be approved.');
     }
 
+    // Update contribution status
     $contribution->update([
         'status'         => 'approved',
         'payment_status' => 'completed',
@@ -354,8 +359,40 @@ public function approve(Contribution $contribution)
         'approved_at'    => now(),
     ]);
 
-    return back()->with('success',"Contribution #{$contribution->id} approved.");
+    // Update shareholder record
+    $shareholder = $contribution->shareholder;
+
+    if ($shareholder) {
+        $updated = false;
+
+        // If contribution is capital, update capital_paid
+        if ($contribution->type === 'capital') {
+            $shareholder->capital_paid = $shareholder->capital_paid + $contribution->amount;
+            $updated = true;
+        }
+
+        // Update share_units if phase is valid
+        if ($contribution->phase && $contribution->phase->share_value > 0) {
+            $units = round($contribution->amount / $contribution->phase->share_value);
+
+            // Avoid negative units or phase with share_value = 0
+            if ($units > 0) {
+                $shareholder->share_units += $units;
+                $updated = true;
+            }
+        }
+
+        if ($updated) {
+            $shareholder->save();
+            \Mail::to($shareholder->customer->email)
+        ->queue(new \App\Mail\ContributionApprovedMail($contribution));
+
+        }
+    }
+
+    return back()->with('success', "Contribution #{$contribution->id} approved and shareholder updated.");
 }
+
 
 /**
  * Reject a pending contribution.
@@ -363,16 +400,24 @@ public function approve(Contribution $contribution)
 public function reject(Contribution $contribution)
 {
     if ($contribution->status !== 'pending') {
-        return back()->with('error','Only pending contributions can be rejected.');
+        return back()->with('error', 'Only pending contributions can be rejected.');
     }
 
     $contribution->update([
         'status'      => 'Failed',
+        'payment_status'      => 'Failed',
         'approved_by' => Auth::guard('admin')->id(),
         'approved_at' => now(),
     ]);
 
-    return back()->with('success',"Contribution #{$contribution->id} rejected.");
+    // Send email to the shareholder
+    $email = $contribution->shareholder->customer->email ?? null;
+
+    if ($email) {
+        \Mail::to($email)->queue(new ContributionRejectedMail($contribution));
+    }
+
+    return back()->with('success', "Contribution #{$contribution->id} rejected.");
 }
 
 }

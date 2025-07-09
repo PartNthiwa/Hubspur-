@@ -105,3 +105,8 @@ Route::post('/logout', function (Request $request) {
 })->middleware(['web', 'shop'])->name('logout');
 
 
+Route::get('/contact', function () {
+    return view('mumbos::shop.shareholders.contact');
+})->middleware(['web', 'shop'])->name('contact');
+
+Route::post('/contact/send', [ShareholderController::class, 'send'])->middleware(['web', 'shop'])->name('contact.send');

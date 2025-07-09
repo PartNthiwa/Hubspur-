@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
-
+use Webkul\MUMBOS\Models\ContactUs;
 use Illuminate\Support\Facades\DB;
 use Webkul\Shop\Http\Controllers\Controller;
 
@@ -454,4 +454,25 @@ public function updateProfile(Request $request)
 
         return redirect()->route('shop.shareholders.profile')->with('success', 'Password changed successfully.');
     }
+
+
+public function send(Request $request)
+{
+    $validated = $request->validate([
+        'name'    => 'required|string|max:255',
+        'email'   => 'required|email',
+        'message' => 'required|string|max:2000',
+    ]);
+
+
+    ContactUs::create($validated);
+
+    Mail::raw($validated['message'], function ($mail) use ($validated) {
+        $mail->to('support@mumbodiaspora.org')
+             ->subject("New Message from {$validated['name']}")
+             ->replyTo($validated['email']);
+    });
+
+    return back()->with('success', 'Your message has been sent successfully!');
+}
 }

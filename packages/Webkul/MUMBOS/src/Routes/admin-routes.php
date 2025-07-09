@@ -32,6 +32,11 @@ Route::group([
     'as' => 'admin.shareholders.', 
 ], function () {
     Route::controller(ShareholderController::class)->group(function () {
+
+         Route::get('/contact-us','contactUs')->name('contact-us');
+        Route::get('/contact-us/{id}', 'showContactMessage')->name('contact-us.show');
+        Route::delete('/contact-us/{id}', 'deleteContactMessage')->name('contact-us.destroy');
+
         Route::get('/', 'index')->name('index');
         Route::get('/create', 'create')->name('create');
         Route::post('/', 'store')->name('store');
@@ -44,10 +49,13 @@ Route::group([
 
 
      Route::post('/{shareholder}/allocate-shares', 'allocateShares')->name('allocate-shares');
-     Route::put('/{shareholderId}/update-units/{shareId}', [ShareholderController::class, 'updateShareUnits'])->name('update-units');
+     Route::put('/{shareholderId}/update-units/{shareId}',  'updateShareUnits')->name('update-units');
+
+   
 
     });
 });
+
 
 
 Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/shares'], function () {
@@ -105,5 +113,3 @@ Route::get('/admin/contributions/{contribution}/receipt-preview', [ContributionC
 
 Route::get('admin/contributions/{contribution}/receipt', [ContributionController::class, 'downloadReceipt'])
      ->name('admin.contributions.receipt.download');
-
-

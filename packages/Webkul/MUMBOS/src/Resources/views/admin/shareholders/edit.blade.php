@@ -1,14 +1,23 @@
 <x-admin::layouts>
     <h2 class="text-lg font-semibold mb-4">Edit Shareholder</h2>
+@if ($errors->any())
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-2 rounded mb-4">
+        <ul class="list-disc pl-6 text-sm">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 
-    <form action="{{ route('admin.shareholders.update', $shareholder) }}" method="POST" class="space-y-6">
+    <form action="{{ route('admin.shareholders.update', $shareholder->shareholder_number) }}" method="POST" class="space-y-6">
         @csrf
         @method('PUT')
 
         {{-- Main shareholder fields --}}
         <div class="max-w-4xl mx-auto">
             <div class="grid grid-cols-2 gap-6 bg-white p-6 rounded-xl shadow-md">
-
+                
                 {{-- First Name --}}
                 <div>
                     <label class="block text-sm font-medium text-gray-700 mb-1">First Name</label>

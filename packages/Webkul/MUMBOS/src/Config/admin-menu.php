@@ -3,7 +3,7 @@
 return [
 
     /**
-     * Membership.
+     * Root Menu: Membership
      */
     [
         'key'   => 'mumbos',
@@ -13,54 +13,57 @@ return [
         'icon'  => 'icon-customer-2',
     ],
 
-    /**
-     * Shares.
-     */
+    // Level 1: Membership Types (child of mumbos)
     [
-        'key'   => 'mumbos.mebership-types',
-        'name'  => 'Membership Type',
+        'key'   => 'mumbos.membership-types',
+        'name'  => 'Membership Types',
         'route' => 'admin.membership-types.index',
-        'sort'  => 10,
+        'sort'  => 1,
         'icon'  => '',
     ],
 
-    /**
-     * Shareholders.
-     */
+    // Level 1: Shareholders (child of mumbos)
     [
         'key'   => 'mumbos.shareholders',
         'name'  => 'Shareholders',
         'route' => 'admin.shareholders.index',
+        'sort'  => 2,
         'icon'  => '',
-        'sort'  => 11,
     ],
 
+    // Level 2: Contact Messages (child of shareholders)
+    [
+        'key'   => 'mumbos.shareholders.contacts',
+        'name'  => 'Contact Messages',
+        'route' => 'admin.shareholders.contact-us',
+        'sort'  => 1,
+        'icon'  => '',
+    ],
 
-      /**
-     * Contributions.
-     */
+    // Level 1: Contributions (child of mumbos)
     [
         'key'   => 'mumbos.contributions',
         'name'  => 'Contributions',
         'route' => 'admin.contributions.index',
+        'sort'  => 3,
         'icon'  => '',
-        'sort'  => 13,
     ],
+
+    // Level 2: Incentives (child of contributions)
     [
-        'key'   => 'mumbos.phases',
-        'name'  => 'Contribution Phases',
-        'route' => 'admin.phases.index',
-        'icon'  => '',
-        'sort'  => 14,
-    ],
-
-  
-
-     [
-        'key'   => 'mumbos.incentives',
+        'key'   => 'mumbos.contributions.incentives',
         'name'  => 'Incentives',
         'route' => 'admin.incentives.index',
+        'sort'  => 1,
         'icon'  => '',
-        'sort'  => 15,
+    ],
+
+    // Level 2: Phases (child of contributions)
+    [
+        'key'   => 'mumbos.contributions.phases',
+        'name'  => 'Contribution Phase',
+        'route' => 'admin.phases.index',
+        'sort'  => 2,
+        'icon'  => '',
     ],
 ];
