@@ -143,10 +143,11 @@ class Shareholder extends Model implements ShareholderContract
 
 public function incentives()
 {
-    return $this->belongsToMany(Incentive::class, 'shareholder_incentive')
-       ->withTimestamps();
+    return $this->belongsToMany(Incentive::class, 'incentive_shareholder')
+                ->withPivot('units')
+                ->withTimestamps();
 }
-    
+
      /** Capital shares computed from contributions + their phase value */
 public function getCapitalShareUnitsAttribute()
     {

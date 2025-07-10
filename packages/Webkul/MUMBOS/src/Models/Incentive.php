@@ -11,7 +11,7 @@ use Webkul\User\Models\Admin;
 
 class Incentive extends Model implements IncentiveContract
 {
-    protected $fillable = ['shareholder_id','type','units','description'];
+    protected $fillable = ['type','metadata','description'];
 
     public function shareholder() {
          return $this->belongsTo(Shareholder::class); 
@@ -37,9 +37,16 @@ class Incentive extends Model implements IncentiveContract
         return $query->where('type','other');
     }
 
-    public function shareholders()
+public function shareholders()
 {
-    return $this->belongsToMany(Shareholder::class, 'shareholder_incentive');
+    return $this->belongsToMany(Shareholder::class, 'incentive_shareholder')
+                ->withPivot('units')
+                ->withTimestamps();
+}
+
+public function getRouteKeyName()
+{
+    return 'id'; 
 }
 
 }

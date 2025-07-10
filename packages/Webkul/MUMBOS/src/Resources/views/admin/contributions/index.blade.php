@@ -1,5 +1,4 @@
 <x-admin::layouts>
-  
     <div class="flex items-center justify-between mb-4 mt-4">
         <h2 class="text-lg font-semibold">Contributions</h2>
         <a href="{{ route('admin.contributions.create') }}"
@@ -11,182 +10,193 @@
             New Contribution
         </a>
     </div>
-  
-    <div class="bg-white rounded-lg shadow overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-800">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="px-4 py-3 text-left font-semibold">#</th>
-                    <th class="px-4 py-3 text-left font-semibold">Shareholder</th>
-                    <th class="px-4 py-3 text-left font-semibold">Amount</th>
-                    <th class="px-4 py-3 text-left font-semibold">Phase</th>
 
-                    <th class="px-4 py-3 text-left font-semibold">Method</th>
-                        <th class="px-4 py-3 text-left font-semibold">Reference</th>
-                    <th class="px-4 py-3 text-left font-semibold">Payment Status</th>
-                        <th class="px-4 py-2">Recorded By</th>
-            <th class="px-4 py-2">Receipt</th>
-                    <th class="px-4 py-3 text-left font-semibold">Date</th>
-                    <th class="px-4 py-3 text-left font-semibold">Actions</th>
-                    <th class="px-4 py-3 text-left font-semibold">Approval Status</th>
+    {{-- Search Wrapper --}}
+    <div
+        class="w-full bg-white shadow-lg rounded-2xl overflow-hidden"
+        x-data="{
+            search: '',
+            visibleCount: 0,
+            highlight(text) {
+                if (!this.search) return text;
+                const term = this.search.toLowerCase();
+                const regex = new RegExp(`(${term})`, 'gi');
+                return text.replace(regex, '<mark class=\'bg-yellow-200\'>$1</mark>');
+            },
+            matches(row) {
+                let term = this.search.toLowerCase();
 
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 bg-white">
-                @forelse($contributions as $c)
+                let name = row.dataset.name || '';
+                let method = row.dataset.method || '';
+                let reference = row.dataset.reference || '';
+                let status = row.dataset.status || '';
+
+                let matched = term === '' ||
+                    name.includes(term) ||
+                    method.includes(term) ||
+                    reference.includes(term) ||
+                    status.includes(term);
+
+                if (matched) this.visibleCount++;
+                return matched;
+            }
+        }"
+        x-init="$watch('search', () => visibleCount = 0)"
+    >
+
+        {{-- 🔍 Search Field --}}
+        <div class="flex items-center gap-4 px-6 py-4 border-b border-gray-200">
+            <input type="text"
+                   x-model.debounce.300="search"
+                   placeholder="Search by name, method, reference, status..."
+                   class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring focus:ring-blue-300">
+        </div>
+
+        {{-- Table --}}
+        <div class="w-full overflow-x-auto">
+            <table class="w-full min-w-max text-sm text-gray-700 border border-gray-300 rounded-lg overflow-hidden">
+                <thead class="bg-gray-600 text-white">
                     <tr>
-                        <td class="px-4 py-3">{{ $c->id }}</td>
-                        <td class="px-4 py-3">
-                        {{ optional($c->shareholder)->customer
-                            ? $c->shareholder->customer->first_name . ' ' . $c->shareholder->customer->last_name
-                            : 'N/A' }}
-                    </td>
-                        <td class="px-4 py-3">{{ number_format($c->amount, 2) }} {{ $c->currency }}</td>
-                        <td class="px-4 py-3">
-                            {{ optional($c->phase)->name ?? '–' }}
-                        </td>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">#</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Shareholder</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Amount</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Phase</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Method</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Reference</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Payment Status</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Recorded By</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Receipt</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Date</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Actions</th>
+                        <th class="px-6 py-3 text-left font-semibold border border-gray-300">Approval Status</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white divide-y divide-gray-200" x-init="visibleCount = 0">
+                    @forelse($contributions as $c)
+                        <tr x-show="matches($el)"
+                            data-name="{{ strtolower(optional($c->shareholder?->customer)?->full_name) }}"
+                            data-method="{{ strtolower($c->payment_method) }}"
+                            data-reference="{{ strtolower($c->payment_reference ?? '') }}"
+                            data-status="{{ strtolower($c->payment_status) }}"
+                            class="hover:bg-gray-100 transition">
+                            <td class="px-6 py-4 border">{{ $c->id }}</td>
 
-                        <td class="px-4 py-3">{{ ucfirst(str_replace('_',' ',$c->payment_method)) }}</td>
-                           <td class="px-4 py-3">{{ $c->payment_reference ?? '-' }}</td>
-                        <td class="px-4 py-3">
-                            @if($c->payment_status == 'completed')
-                                <span class="bg-green-100 text-green-900 px-2 py-1 rounded text-xs">Completed</span>
-                            @elseif($c->payment_status == 'failed')
-                                <span class="bg-red-100 text-red-900 px-2 py-1 rounded text-xs">Failed</span>
-                            @else
-                                <span class="bg-yellow-100 text-yellow-900 px-2 py-1 rounded text-xs">Pending</span>
-                            @endif
-                        </td>
-                                      <td class="px-4 py-3">{{ optional($c->recordedBy)->name ?? '–' }}</td>
-                            <td class="px-4 py-2">
-                            @if($c->receipt_url)
-                                <a href="{{ $c->receipt_url }}" target="_blank" class="underline text-blue-600">PDF</a>
-                            @else
-                                <span class="text-gray-400">–</span>
-                            @endif
+                            <td class="px-6 py-4 border">
+                                <span x-html="highlight(`{{ optional($c->shareholder?->customer)?->full_name ?? 'N/A' }}`)"></span>
                             </td>
-                        <td class="px-4 py-3">{{ $c->contributed_at->format('Y-m-d') }}</td>
-                        <td class="px-4 py-3">
-                                  <div class="flex items-center gap-x-4">
 
-                                <a href="{{ route('admin.contributions.show', $c) }}"
-                                   class="text-indigo-600 hover:text-indigo-800 flex items-center space-x-1" title="View">
-                                     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 " fill="none"
-                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                    <span class="hidden sm:inline">View</span>
-                                </a>
+                            <td class="px-6 py-4 border">
+                                {{ number_format($c->amount, 2) }} {{ $c->currency }}
+                            </td>
 
-                         
-                                <a href="{{ route('admin.contributions.edit', $c) }}"
-                                   class="text-blue-600 hover:text-blue-800 flex items-center space-x-1" title="Edit">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-7.414a2 2 0 112.828 2.828L11 19l-4 1 1-4 9.586-9.586z"/>
-                                    </svg>
-                                    <span class="hidden sm:inline">Edit</span>
-                                </a>
+                            <td class="px-6 py-4 border">{{ $c->phase->name ?? '–' }}</td>
 
-                           
-                                <form method="POST" action="{{ route('admin.contributions.destroy', $c) }}"
-                                      class="inline-block" onsubmit="return confirm('Delete this contribution?')">
-                                    @csrf
-                                    @method('DELETE')
-                                    <button type="submit" class="text-red-600 hover:text-red-800 flex items-center space-x-1" title="Delete">
-                                         <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                                        <span class="hidden sm:inline">Delete</span>
-                                    </button>
-                                </form>
+                            <td class="px-6 py-4 border">
+                                <span x-html="highlight(`{{ ucfirst(str_replace('_',' ',$c->payment_method)) }}`)"></span>
+                            </td>
 
+                            <td class="px-6 py-4 border">
+                                <span x-html="highlight(`{{ $c->payment_reference ?? '-' }}`)"></span>
+                            </td>
 
-                                    @if($c->payment_method === 'mpesa' && $c->payment_status === 'pending')
-                                  <form action="{{ route('admin.contributions.recheck', ['contribution' => $c->id]) }}" method="POST">
+                            <td class="px-6 py-4 border">
+                                <span x-html="highlight(`{{ ucfirst($c->payment_status) }}`)"></span>
+                            </td>
 
-                                        @csrf
-                                        <button type="submit" class="bg-blue-500 text-white px-2 py-1 text-xs rounded hover:bg-blue-600">
-                                            Recheck M-Pesa
+                            <td class="px-6 py-4 border">{{ optional($c->recordedBy)?->name ?? '–' }}</td>
+
+                            <td class="px-6 py-4 border">
+                                @if($c->receipt_url)
+                                    <a href="{{ $c->receipt_url }}" target="_blank" class="text-blue-600 underline">PDF</a>
+                                @else
+                                    <span class="text-gray-400">–</span>
+                                @endif
+                            </td>
+
+                            <td class="px-6 py-4 border">{{ $c->contributed_at->format('Y-m-d') }}</td>
+
+                            <td class="px-6 py-4 border">
+                                <div class="flex items-center gap-4">
+                                    <a href="{{ route('admin.contributions.show', $c) }}"
+                                       class="text-indigo-600 hover:text-indigo-800" title="View">
+                                        <x-heroicon-s-eye class="w-5 h-5" />
+                                    </a>
+
+                                    <form method="POST" action="{{ route('admin.contributions.destroy', $c) }}"
+                                          onsubmit="return confirm('Delete this contribution?')" class="inline">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
+                                            <x-heroicon-s-trash class="w-5 h-5" />
                                         </button>
                                     </form>
 
-                                @endif
-
-                            </div>
-                        </td>
-                   
-
-                       <td class="px-4 py-3">
-                            <div class="flex items-center gap-x-2">
-                                @php
-                                    $statusClasses = match($c->payment_status) {
-                                        'pending' => 'bg-yellow-100 text-yellow-800',
-                                        'approved' => 'bg-green-100 text-green-800',
-                                        'failed', 'rejected' => 'bg-red-100 text-red-800',
-                                        default => 'bg-gray-100 text-gray-800'
-                                    };
-                                @endphp
-                                @if(auth('admin')->check() && in_array(auth('admin')->user()->role_id, [1, 2]))
-
-                                    @if($c->status === 'pending')
-                                        <form action="{{ route('admin.contributions.approve', $c) }}"
-                                            method="POST" class="inline">
+                                    @if($c->payment_method === 'mpesa' && $c->payment_status === 'pending')
+                                        <form action="{{ route('admin.contributions.recheck', $c) }}" method="POST">
                                             @csrf
                                             <button type="submit"
-                                                    class="bg-green-600 text-white px-3 py-1 rounded text-xs hover:bg-green-700">
+                                                    class="text-xs bg-blue-500 hover:bg-blue-600 text-white px-2 py-1 rounded">
+                                                Recheck
+                                            </button>
+                                        </form>
+                                    @endif
+                                </div>
+                            </td>
+
+                            <td class="px-6 py-4 border">
+                                @if($c->status === 'pending')
+                                    <div class="flex gap-2">
+                                        <form action="{{ route('admin.contributions.approve', $c) }}" method="POST">
+                                            @csrf
+                                            <button
+                                                type="submit"
+                                                style="background-color: #16a34a; color: white; padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 0.25rem;"
+                                                onmouseover="this.style.backgroundColor='#15803d'"
+                                                onmouseout="this.style.backgroundColor='#16a34a'"
+                                            >
                                                 Approve
                                             </button>
                                         </form>
-
-                                        <form action="{{ route('admin.contributions.reject', $c) }}"
-                                            method="POST" class="inline">
+                                        <form action="{{ route('admin.contributions.reject', $c) }}" method="POST">
                                             @csrf
-                                            <button type="submit"
-                                                    style="
-                                                        background-color: #dc3545;
-                                                        color:rgb(245, 242, 242);
-                                                        padding: 0.25rem 0.5rem;
-                                                        border: none;
-                                                        border-radius: 0.25rem;
-                                                        font-size: 0.75rem;
-                                                        cursor: pointer;
-                                                    "
-                                                    onmouseover="this.style.backgroundColor='#c82333'"
-                                                    onmouseout="this.style.backgroundColor='#dc3545'">
+                                            <button
+                                                type="submit"
+                                                style="background-color: #dc2626; color: white; padding: 0.25rem 0.75rem; font-size: 0.75rem; border-radius: 0.25rem;"
+                                                onmouseover="this.style.backgroundColor='#b91c1c'"
+                                                onmouseout="this.style.backgroundColor='#dc2626'"
+                                            >
                                                 Reject
                                             </button>
                                         </form>
-                                    @else
-                                        <span class="text-green-600 text-xs uppercase">{{ $c->status }}</span>
-                                    @endif
+                                    </div>
                                 @else
-                                    <span class="px-2 py-1 text-red-600 rounded text-xs uppercase font-semibold {{ $statusClasses }}">
-                                        {{ $c->payment_status }}
+                                    <span class="text-xs font-semibold {{ $c->status === 'approved' ? 'text-green-600' : ($c->status === 'failed' ? 'text-red-600' : 'text-gray-300') }}">
+                                        {{ strtoupper($c->status) }}
                                     </span>
                                 @endif
-                            </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr x-show="visibleCount === 0">
+                            <td colspan="12" class="px-6 py-4 text-center text-red-500">No contributions found.</td>
+                        </tr>
+                    @endforelse
+
+                        <tr x-show="visibleCount === 0 && search.length > 0">
+                        <td colspan="12" class="px-6 py-4 text-center text-gray-500 italic">
+                            No contributions match your search.
                         </td>
+                    </tr>
 
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="px-4 py-4 text-center text-gray-500">No contributions found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination --}}
+        <div class="px-6 py-4 bg-gray-50 flex justify-end">
+            {{ $contributions->links() }}
+        </div>
     </div>
 
-    <div class="mt-4">
-        {{ $contributions->links() }}
-    </div>
-
-
+    {{-- Alpine.js --}}
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </x-admin::layouts>

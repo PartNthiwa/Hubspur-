@@ -4,7 +4,6 @@ use Illuminate\Support\Facades\Route;
 use Webkul\MUMBOS\Http\Controllers\Admin\MUMBOSController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareholderController;
-use Webkul\MUMBOS\Http\Controllers\Admin\MpesaController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ShareholderGroupController;
 use Webkul\MUMBOS\Http\Controllers\Admin\MembershipTypeController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ContributionController;
@@ -13,17 +12,15 @@ use Webkul\MUMBOS\Http\Controllers\Admin\IncentiveController;
 
 use Webkul\MUMBOS\Http\Controllers\Admin\MpesaCallbackController;
 
-
 Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions'], function () {
-    Route::controller(MpesaController::class)->group(function () {
-     Route::post('/mpesa/stk-push', [MpesaController::class, 'stkPush'])->name('mpesa.stk.push');
-      });
-
 
     Route::resource('membership-types', MembershipTypeController::class, ['as' => 'admin']);
     Route::resource('phases', PhaseController::class, ['as' => 'admin']);
     Route::resource('incentives', IncentiveController::class, ['as' => 'admin']);
+
+
 });
+
 
 
 Route::group([
@@ -113,3 +110,7 @@ Route::get('/admin/contributions/{contribution}/receipt-preview', [ContributionC
 
 Route::get('admin/contributions/{contribution}/receipt', [ContributionController::class, 'downloadReceipt'])
      ->name('admin.contributions.receipt.download');
+
+Route::put('/admin/incentives/{incentive_id}/shareholder/{shareholder_number}/update-units', [
+    IncentiveController::class, 'updateUnits'
+])->name('admin.incentives.update-units');

@@ -11,12 +11,33 @@ class MembershipTypeController extends Controller
     /**
      * Display all membership types.
      */
-    public function index()
-    {
-        $membershipTypes = MembershipType::orderBy('created_at', 'desc')->get();
+  
+public function index(Request $request)
+{
+    $query = MembershipType::query();
 
-        return view('mumbos::admin.membership-types.index', compact('membershipTypes'));
+    // 1. Status filter
+    if ($request->filled('status')) {
+        $query->where('is_active', $request->status);
     }
+
+    // 2. Search filter (on type OR description)
+    if ($request->filled('search')) {
+        $term = '%' . $request->search . '%';
+        $query->where(function($q) use ($term) {
+            $q->where('type', 'like', $term)
+              ->orWhere('description', 'like', $term);
+        });
+    }
+
+    // 3. Ordering & pagination
+    $membershipTypes = $query
+        ->orderBy('created_at', 'desc')
+        ->paginate(10)
+        ->withQueryString(); // preserves ?status=&search= in pagination links
+
+    return view('mumbos::admin.membership-types.index', compact('membershipTypes'));
+}
 
     /**
      * Show the form to create a new membership type.
@@ -65,7 +86,7 @@ class MembershipTypeController extends Controller
             'is_active'   => 'boolean',
         ]);
 
-        $data['is_active'] = $request->has('is_active');
+        $membershipType->is_active = $request->boolean('is_active');
 
         $membershipType->update($data);
 

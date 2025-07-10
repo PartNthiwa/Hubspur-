@@ -39,6 +39,11 @@ class Customer extends Authenticatable implements CustomerContract
         'subscribed_to_news_letter' => 'boolean',
     ];
 
+    public function getFullNameAttribute()
+    {
+        return "{$this->first_name} {$this->last_name}";
+    }
+
     /**
      * The attributes that are mass assignable.
      *

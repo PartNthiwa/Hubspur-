@@ -12,12 +12,11 @@ return new class extends Migration
     public function up(): void
     {
         Schema::create('incentives', function (Blueprint $table) {
-            $table->id();
-            $table->foreignId('shareholder_id')->constrained()->onDelete('cascade');
-            $table->enum('type', ['first','second','third','other']);
-            $table->string('description')->nullable();
-            $table->integer('units');
-            $table->timestamps();
+                $table->id();
+                $table->string('type');
+                $table->string('description')->nullable();
+                $table->json('metadata')->nullable();
+                $table->timestamps();
         });
     }
 

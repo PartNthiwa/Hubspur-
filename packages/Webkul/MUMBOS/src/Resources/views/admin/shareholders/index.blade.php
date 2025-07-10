@@ -1,304 +1,187 @@
 
+
+
 <x-admin::layouts>
-    <div class="flex justify-between items-center mb-6">
-        <h1 class="text-xl font-semibold text-gray-800">Members List</h1>
+
+
+    <div class="mb-2 mt-8 flex items-center justify-between px-6">
+        <h1 class="text-lg font-semibold text-gray-800">Members List</h1>
+      
         <a href="{{ route('admin.shareholders.create') }}"
-           class="bg-blue-600 hover:bg-blue-700 text-white text-sm px-4 py-2 rounded shadow-sm transition">
-            + Add Member
+           class="inline-flex items-center gap-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md transition">
+            <x-heroicon-s-plus class="w-5 h-5" />
+            <span class="text-sm font-medium">Add Member</span>
         </a>
     </div>
 
-    <div class="bg-white rounded-lg shadow overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200 text-sm text-gray-800">
-            <thead class="bg-gray-100">
-                <tr>
-                    <th class="px-4 py-3 text-left font-semibold">#</th>
-                    <th class="px-4 py-3 text-left font-semibold">Member Number</th>
-                    <th class="px-4 py-3 text-left font-semibold">Full Name</th>
-                    <th class="px-4 py-3 text-left font-semibold">Membership Types</th>
-                    <th class="px-4 py-3 text-left font-semibold">Membership Paid</th>
-                     <th class="px-4 py-3 text-left font-semibold">Capital Contribution</th>
-                    <th class="px-4 py-3 text-left font-semibold">Incentives</th>
-                    <th class="px-4 py-3 text-left font-semibold">Capital Shares</th>
-                    <th class="px-4 py-3 text-left font-semibold">Total Shares</th>
-                    <th class="px-4 py-3 text-left font-semibold">Total Contributions</th>
-                    <th class="px-4 py-3 text-left font-semibold">Status</th>
-                    <th class="px-4 py-3 text-left font-semibold">Actions</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-gray-100 bg-white">
-                @forelse($shareholders as $shareholder)
-                    @php
-                        $totalPaid = 0;
-                        $shareClasses = [];
-                        foreach ($shareholder->shares as $share) {
-                            $units = $share->pivot->units ?? 0;
-                            $price = $share->price_per_unit ?? 0;
-                            $totalPaid += $units * $price;
-                            $shareClasses[] = $share->class;
-                        }
-                    @endphp
 
-                    <tr>
-                        <td class="px-4 py-3">{{ $shareholder->id }}</td>
-                        <td class="px-4 py-3">{{ $shareholder->shareholder_number }}</td>
-                       
-
-                        <td class="px-4 py-3">
-                            {{ $shareholder->customer->first_name }} {{ $shareholder->customer->last_name }}
-                        </td>
- <td class="px-4 py-3">
-                        @forelse ($shareholder->membershipTypes as $membership)
-                            <span class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mr-1">
-                                {{ $membership->type }}
-                            </span>
-                        @empty
-                            <span class="text-gray-400 text-sm">–</span>
-                        @endforelse
-                    </td>
-                        <td class="px-4 py-3">
-                            @php
-                               $membershipContribution = $shareholder->contributions
-                                ->where('type', 'membership')
-                                ->where('status', 'approved')
-                                ->sum('amount');
-
-                            @endphp
-                            KES {{ number_format($membershipContribution, 2) }}
-                        </td>
-                        <td class="px-4 py-3">
-                            @php
-                                $capitalContribution = $shareholder->contributions
-                                    ->where('type', 'capital')
-                                    ->where('status', 'approved')
-                                    ->sum('amount');
-                            @endphp
-
-                            KES {{ number_format($capitalContribution, 2) }}
-                        </td>
-
-
-                        <td class="px-4 py-3">
-                            @forelse ($shareholder->incentives as $incentive)
-                                <span class="inline-block bg-indigo-100 text-black text-xs px-2 py-1 rounded mr-1">
-                                    {{ $incentive->type }}
-                                </span>
-                            @empty
-                                <span class="text-gray-400 text-sm">–</span>
-                            @endforelse
-                        </td>
-
-                    <td class="px-4 py-3">
-                @php
-                   
-                  $contributionAmount = $shareholder->contributions
-                    ->filter(function ($contribution) {
-                        return strtolower(trim($contribution->type)) !== 'membership' && $contribution->status === 'approved';
-                    })
-                    ->sum('amount');
-
-
-                    $shareValue = $shareholder->phase->share_value ?? 1000;
-
-                    $totalShares = $shareValue > 0 ? $contributionAmount / $shareValue : 0;
-                @endphp
-
-                {{ number_format($totalShares) }}
-            </td>
-
-
-            <td class="px-4 py-3">
-    @php
-        $phase = $shareholder->phase;
-        $shareValue = $phase->share_value ?? 1000;
-
-      $nonMembershipTotal = $shareholder->contributions
-    ->filter(function ($contribution) {
-        return strtolower(trim($contribution->type)) !== 'membership' && $contribution->status === 'approved';
-    })
-    ->sum('amount');
-
-
-        $contributionShares = $shareValue > 0 ? $contributionAmount / $shareValue : 0;
-
-        // Get total units from incentives table (already stored in incentives)
-        $incentiveShares = $shareholder->incentives->sum('units');
-
-        // Total shares = contribution shares + incentive shares
-        $totalShares = $contributionShares + $incentiveShares;
-    @endphp
-
-    {{ number_format($totalShares) }}
-</td>
-
-
-
-
-        @php
-$contributionAmount = $shareholder->contributions
-    ->filter(fn($c) => strtolower(trim($c->type)) !== 'membership' && $c->status === 'approved')
-    ->sum('amount');
-
-@endphp
-<td class="px-4 py-3">
-KES {{ number_format($nonMembershipTotal, 2) }}
-</td>
-
-
-                       <td class="px-4 py-3">
-                            @if ($shareholder->is_active)
-                                <span style="background-color: #16a34a;" class="text-white text-xs px-2 py-1 rounded">
-                                    Active
-                                </span>
-                            @else
-                                <span style="background-color: #dc2626;" class="text-white text-xs px-2 py-1 rounded">
-                                    Inactive
-                                </span>
-                            @endif
-                        </td>
-
-                        <td class="px-4 py-3">
-                            <div class="flex items-center gap-x-4">
-                                <a href="{{ route('admin.shareholders.show', $shareholder) }}"
-                                   class="text-indigo-600 hover:text-indigo-800" title="View">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
-                                    </svg>
-                                </a>
-
-                                <a href="{{ route('admin.shareholders.edit', $shareholder) }}"
-                                   class="text-blue-600 hover:text-blue-800a" title="Edit">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                         viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                              d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-7.414a2 2 0 112.828 2.828L11 19l-4 1 1-4 9.586-9.586z"/>
-                                    </svg>
-                                </a>
-
-                            <!-- <button
-                                type="button"
-                                onclick="openModal('{{ $shareholder->id }}')"
-                                class="text-green-600 hover:text-green-800"
-                                title="Allocate Shares"
-                            >
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-                                </svg>
-                            </button> -->
-
-                               <form method="POST" action="{{ route('admin.shareholders.destroy', $shareholder->shareholder_number) }}"
-
-                            class="inline-block"
-                            onsubmit="return confirm('Delete this shareholder?')">
-                            @csrf
-                            @method('DELETE')
-                            <button type="submit" class="text-red-600 hover:text-red-800" title="Delete">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
-                                    viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                                        d="M6 18L18 6M6 6l12 12"/>
-                                </svg>
-                            </button>
-                        </form>
-
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="7" class="px-4 py-4 text-center text-gray-500">No shareholders found.</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
-    </div>
-
-    <div class="mt-4">
-        {{ $shareholders->links() }}
-    </div>
-    
- @foreach ($shareholders as $shareholder)
     <div
-        id="allocateModal-{{ $shareholder->id }}"
-        class="fixed inset-0 z-50 hidden bg-white bg-opacity-40 flex items-center justify-center transition-opacity duration-300"
+        class="w-full bg-white shadow-lg rounded-2xl overflow-hidden"
+        x-data="{
+            search: '',
+            visibleCount: 0,
+            highlight(text) {
+                if (!this.search) return text;
+                const term = this.search.toLowerCase();
+                const regex = new RegExp(`(${term})`, 'gi');
+                return text.replace(regex, '<mark class=\'bg-yellow-200\'>$1</mark>');
+            },
+            matches(row) {
+                let term = this.search.toLowerCase();
+                let name = row.dataset.name?.toLowerCase() || '';
+                let number = row.dataset.number?.toLowerCase() || '';
+                let matched = term === '' || name.includes(term) || number.includes(term);
+
+                if (matched) this.visibleCount++;
+                return matched;
+            }
+        }"
+        x-init="$watch('search', () => visibleCount = 0)"
     >
-        <div class="bg-blue-100 border border-gray-300 rounded-md w-[90%] sm:w-[500px] shadow-2xl p-6 relative border border-gray-200">
-         <button
-                onclick="closeModal('{{ $shareholder->id }}')"
-                class="absolute top-3 left-3 z-10 text-gray-400 hover:text-gray-600 text-2xl leading-none"
-                aria-label="Close"
-            >
-                &times;
-            </button>
+        {{-- Filters --}}
+        <div class="flex items-center gap-4 px-6 py-4 border-b border-gray-200">
+            <input type="text"
+                   x-model.debounce.300="search"
+                   placeholder="Search members by name or number…"
+                   class="flex-1 border border-gray-300 rounded-md px-3 py-2 focus:ring focus:ring-blue-300">
+        </div>
 
-            <h2 class="text-xl font-bold mb-6 text-gray-800 border-b pb-2 pt-2 pl-4 pr-6">
-                Allocate Shares to {{ $shareholder->customer->first_name }}
-            </h2>
+   
+        <div class="w-full overflow-x-auto">
+            <table class="w-full min-w-max text-sm text-gray-700 border border-gray-300 rounded-lg overflow-hidden">
+                <thead class="bg-gray-600 text-white">
+                    <tr>
+                        <th class="px-6 py-3 border border-gray-300 text-left">#</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Member Number</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Full Name</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Membership Types</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Membership Paid</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Capital Contribution</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Incentives</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Capital Shares</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Total Shares</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Total Contributions</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Status</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="bg-white" x-init="visibleCount = 0">
+                    @forelse($shareholders as $shareholder)
+                        @php
+                            $fullName = $shareholder->customer->first_name . ' ' . $shareholder->customer->last_name;
+                            $membershipContribution = $shareholder->contributions->where('type', 'membership')->where('status', 'approved')->sum('amount');
+                            $capitalContribution = $shareholder->contributions->where('type', 'capital')->where('status', 'approved')->sum('amount');
+                            $nonMembershipTotal = $shareholder->contributions->filter(fn($c) => strtolower(trim($c->type)) !== 'membership' && $c->status === 'approved')->sum('amount');
+                            $shareValue = $shareholder->phase->share_value ?? 1000;
+                            $contributionShares = $shareValue > 0 ? $nonMembershipTotal / $shareValue : 0;
+                            $incentiveShares = $shareholder->incentives->sum(fn($i) => $i->pivot->units ?? 0);
 
-            <form action="{{ route('admin.shareholders.allocate-shares', $shareholder) }}" method="POST" class="space-y-5 ">
-                @csrf
+                            $totalShares = $contributionShares + $incentiveShares;
+                        @endphp
 
-                <div class="grid grid-cols-2 sm:grid-cols-2 gap-6 ">
-                    <div>
-                        <label for="share_id_{{ $shareholder->id }}" class="block text-sm font-medium text-gray-700 mb-1">
-                            Share Class
-                        </label>
-                        <select
-                            name="share_id"
-                            id="share_id_{{ $shareholder->id }}"
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring focus:ring-blue-200"
-                            required
-                        >
-                            @foreach ($shares as $share)
-                                <option value="{{ $share->id }}">
-                                    {{ $share->class }} (KES {{ number_format($share->price_per_unit, 2) }})
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                        <tr x-show="matches($el)"
+                            data-name="{{ strtolower($fullName) }}"
+                            data-number="{{ strtolower($shareholder->shareholder_number) }}"
+                            class="hover:bg-gray-100 hover:shadow-sm transition">
+                            <td class="px-6 py-4 border">{{ $shareholder->id }}</td>
+                            <td class="px-6 py-4 border">
+                                <span x-html="highlight(`{{ $shareholder->shareholder_number }}`)"></span>
+                            </td>
+                            <td class="px-6 py-4 border">
+                                <span x-html="highlight(`{{ $fullName }}`)"></span>
+                            </td>
+                            <td class="px-6 py-4 border">
+                                @forelse ($shareholder->membershipTypes as $membership)
+                                    <span class="inline-block bg-yellow-100 text-yellow-800 text-xs px-2 py-1 rounded mr-1">
+                                        {{ $membership->type }}
+                                    </span>
+                                @empty
+                                    <span class="text-gray-400 text-sm">–</span>
+                                @endforelse
+                            </td>
+                            <td class="px-6 py-4 border">KES {{ number_format($membershipContribution, 2) }}</td>
+                            <td class="px-6 py-4 border">KES {{ number_format($capitalContribution, 2) }}</td>
+                         <td class="px-4 py-3">
+    @forelse ($shareholder->incentives as $incentive)
+       <form
+    method="POST"
+    action="{{ route('admin.incentives.update-units', ['incentive_id' => $incentive->id, 'shareholder_number' => $shareholder->shareholder_number]) }}"
+    class="inline-flex items-center gap-1 bg-indigo-100 text-black text-xs px-2 py-1 rounded mr-1"
+>
+    @csrf
+    @method('PUT')
 
-                    <div>
-                        <label for="units_{{ $shareholder->id }}" class="block text-sm font-medium text-gray-700 mb-1">
-                            Units
-                        </label>
-                        <input
-                            type="number"
-                            name="units"
-                            id="units_{{ $shareholder->id }}"
-                            class="w-full border border-gray-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring focus:ring-blue-200"
-                            required
-                            min="1"
-                            placeholder="e.g. 10"
-                        >
-                    </div>
-                </div>
+    <label class="font-semibold mr-1">{{ ucfirst($incentive->type) }}:</label>
 
-                <div class="flex justify-end pt-3">
-                    <button
-                        type="submit"
-                        class="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-md text-sm font-medium transition"
-                    >
-                        Allocate
-                    </button>
-                </div>
-            </form>
+    <input
+        type="number"
+        name="units"
+        value="{{ $incentive->pivot->units ?? 0 }}"
+        min="0"
+        class="w-14 text-xs border border-gray-300 rounded px-1 py-0.5"
+    />
+
+    <button type="submit"
+            class="text-green-700 hover:text-green-900 text-xs font-semibold border border-green-600 rounded px-2 py-0.5 bg-white">
+        Update
+    </button>
+</form>
+
+    @empty
+        <span class="text-gray-400 text-sm">–</span>
+    @endforelse
+</td>
+
+
+
+                            <td class="px-6 py-4 border">{{ number_format($contributionShares) }}</td>
+                            <td class="px-6 py-4 border">{{ number_format($totalShares) }}</td>
+                            <td class="px-6 py-4 border">KES {{ number_format($nonMembershipTotal, 2) }}</td>
+                            <td class="px-6 py-4 border">
+                                <span class="text-xs px-2 py-1 rounded {{ $shareholder->is_active ? 'bg-green-600 text-white' : 'bg-red-600 text-white' }}">
+                                    {{ $shareholder->is_active ? 'Active' : 'Inactive' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 border">
+                                <div class="flex items-center gap-x-3">
+                                    <a href="{{ route('admin.shareholders.show', $shareholder) }}"
+                                       class="text-indigo-600 hover:text-indigo-800" title="View">
+                                        <x-heroicon-s-eye class="w-5 h-5" />
+                                    </a>
+                                    <a href="{{ route('admin.shareholders.edit', $shareholder) }}"
+                                       class="text-blue-600 hover:text-blue-800" title="Edit">
+                                        <x-heroicon-s-pencil class="w-5 h-5" />
+                                    </a>
+                                    <form method="POST"
+                                          action="{{ route('admin.shareholders.destroy', $shareholder->shareholder_number) }}"
+                                          onsubmit="return confirm('Delete this shareholder?')"
+                                          class="inline-block">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" title="Delete"
+                                                class="text-red-600 hover:text-red-800">
+                                            <x-heroicon-s-trash class="w-5 h-5" />
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr x-show="visibleCount === 0">
+                            <td colspan="12" class="px-6 py-4 text-center text-red-600">
+                                Whoops!! No members found.
+                            </td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+
+        {{-- Pagination --}}
+        <div class="px-6 py-4 bg-gray-50 flex justify-end">
+            {{ $shareholders->links() }}
         </div>
     </div>
-@endforeach
 
-
-<script>
-    function openModal(id) {
-        document.getElementById('allocateModal-' + id).classList.remove('hidden');
-    }
-
-    function closeModal(id) {
-        document.getElementById('allocateModal-' + id).classList.add('hidden');
-    }
-</script>
-
+    <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
 </x-admin::layouts>

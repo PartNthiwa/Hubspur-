@@ -2,7 +2,9 @@
 
 return [
     App\Providers\AppServiceProvider::class,
+    App\Providers\RouteServiceProvider::class,
     App\Providers\PaymentGateway::class,
+    App\Providers\RouteServiceProvider::class,
     Webkul\Admin\Providers\AdminServiceProvider::class,
     Webkul\Attribute\Providers\AttributeServiceProvider::class,
     Webkul\BookingProduct\Providers\BookingProductServiceProvider::class,
