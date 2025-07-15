@@ -10,7 +10,7 @@
         <h2 class="text-lg font-semibold">Add New Contribution</h2>
         <a href="{{ route('admin.contributions.index') }}"
            class="inline-flex items-center bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700 text-sm transition">
-            ← Back to List
+            ← Back to Contributions
         </a>
     </div>
 
@@ -18,7 +18,7 @@
         <form action="{{ route('admin.contributions.store') }}"
               method="POST"
               enctype="multipart/form-data"
-              class="space-y-6 bg-white p-6 rounded shadow"
+              class="space-y-6  p-6 "
         >
             @csrf
 
@@ -28,7 +28,7 @@
                 'phases'       => $phases ?? [],
             ])
 
-            <div class="flex gap-3 pt-2">
+            <div class="flex gap-3 pt-2 ">
                 <button type="submit"
                         class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
                     Save Contribution
@@ -53,7 +53,9 @@
 
   
    
-
+ <div class="mt-4 text-center text-sm text-gray-500">
+        &copy; {{ date('Y') }} MUMBO Kenya Diaspora Investments Ltd. All rights reserved.
+    </div>
 </x-admin::layouts>
 <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 

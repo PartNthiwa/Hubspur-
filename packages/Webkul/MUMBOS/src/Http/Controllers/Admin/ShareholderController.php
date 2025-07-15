@@ -10,13 +10,16 @@ use Webkul\MUMBOS\Models\Incentive;
 use Webkul\MUMBOS\Models\Share;
 use Webkul\MUMBOS\Models\ContactUs;
 use Illuminate\Support\Facades\Log;
-
+use Barryvdh\DomPDF\Facade\Pdf; 
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Webkul\Customer\Models\Customer;
 use Webkul\MUMBOS\Models\Contribution;
 use Illuminate\Http\Request;
+
+use App\Mail\ShareholderMessage;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Response;
 use Illuminate\Support\Facades\Storage;
 use Webkul\MUMBOS\Http\Requests\ShareholderRequest;
@@ -38,7 +41,51 @@ class ShareholderController extends Controller
         return view('mumbos::admin.shareholders.index', compact('shareholders', 'shares'));
     }
 
+public function sendEmail(Request $request)
+{
+    $request->validate([
+        'email' => 'required|email',
+        'subject' => 'required|string',
+        'message' => 'required|string',
+        'attachments.*' => 'file|mimes:pdf,docx,zip,png,jpg|max:2048'
+    ]);
 
+    // Save uploaded files temporarily and collect paths
+    $attachments = [];
+    if ($request->hasFile('attachments')) {
+        foreach ($request->file('attachments') as $file) {
+            $attachments[] = $file->store('temp_emails');
+        }
+    }
+
+    Mail::to($request->email)
+        ->queue(new ShareholderMessage(
+            $request->subject,
+            $request->message,
+            $attachments
+        ));
+
+    return back()->with('success', 'Email queued successfully.');
+}
+
+public function generateStatement($shareholderNumber)
+{
+    $shareholder = Shareholder::with([
+    'customer',
+    'contributions.phase', 
+    'incentives'
+])->where('shareholder_number', $shareholderNumber)
+  ->firstOrFail();
+
+
+    $pdf = Pdf::loadView('mumbos::admin.shareholders.statement-pdf', compact('shareholder'));
+
+    if (request()->query('download') === 'true') {
+        return $pdf->download("statement_{$shareholderNumber}.pdf");
+    }
+
+    return $pdf->stream("statement_{$shareholderNumber}.pdf"); // Open in browser
+}
 public function contactUs()
 {
     $messages = ContactUs::latest()->paginate(20);

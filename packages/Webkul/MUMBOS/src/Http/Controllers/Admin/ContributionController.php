@@ -211,7 +211,7 @@ public function store(Request $request)
     \Mail::to($shareholder->customer->email)
             ->queue(new \App\Mail\ContributionSubmittedMail($contribution));
 
-    return redirect()->route('admin.contributions.index')->with('success', 'Contribution recorded. M-Pesa STK Push sent if selected.');
+    return redirect()->route('admin.contributions.index')->with('message', 'Contribution recorded Succesfully.');
 }
 
 public function generateTransactionRef(string $shareholderNumber, string $source = 'WEB'): string
@@ -403,14 +403,14 @@ public function reject(Contribution $contribution)
         return back()->with('error', 'Only pending contributions can be rejected.');
     }
 
-    $contribution->update([
-        'status'      => 'Failed',
-        'payment_status'      => 'Failed',
-        'approved_by' => Auth::guard('admin')->id(),
-        'approved_at' => now(),
+   $contribution->update([
+        'status'         => 'rejected',
+        'payment_status' => 'failed',
+        'approved_by'    => Auth::guard('admin')->id(),
+        'approved_at'    => now(),
     ]);
 
-    // Send email to the shareholder
+
     $email = $contribution->shareholder->customer->email ?? null;
 
     if ($email) {
@@ -419,5 +419,46 @@ public function reject(Contribution $contribution)
 
     return back()->with('success', "Contribution #{$contribution->id} rejected.");
 }
+
+
+public function bulkAction(Request $request)
+{
+    $request->validate([
+        'selected_contributions' => 'required|array',
+        'action' => 'required|string|in:approve,reject,delete',
+    ]);
+
+    $ids = $request->input('selected_contributions');
+    $action = $request->input('action');
+
+    $contributions = Contribution::whereIn('id', $ids)->get();
+    $processedCount = 0;
+
+    foreach ($contributions as $contribution) {
+        switch ($action) {
+            case 'approve':
+                if ($contribution->status === 'pending') {
+                    $this->approve($contribution);
+                    $processedCount++;
+                }
+                break;
+
+            case 'reject':
+                if ($contribution->status === 'pending') {
+                    $this->reject($contribution);
+                    $processedCount++;
+                }
+                break;
+
+            case 'delete':
+                $contribution->delete();
+                $processedCount++;
+                break;
+        }
+    }
+
+    return redirect()->back()->with('message', "Bulk action '$action' applied to $processedCount contribution(s).");
+}
+
 
 }

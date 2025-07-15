@@ -9,6 +9,7 @@
         "laravel-vite-plugin": "^1.0"
     },
     "dependencies": {
+        "alpinejs": "^3.14.9",
         "tinymce": "^7.9.1"
     }
 }

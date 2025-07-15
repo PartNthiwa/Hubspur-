@@ -176,8 +176,5 @@
         </div>
     </form> <br><br>
 
-<h2 class="text-lg font-bold text-gray-800">Shareholder Details</h2>
-<div class="w-full h-2 my-6 rounded-full bg-gradient-to-r from-green-600 via-blue-500 to-purple-600 shadow-md"></div>
-<div style="height: 4px; background: linear-gradient(to right, green, blue, red);"></div>
 
 </x-admin::layouts>

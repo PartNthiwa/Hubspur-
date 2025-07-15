@@ -39,6 +39,14 @@ class Shareholder extends Model implements ShareholderContract
     {
         return 'shareholder_number';
     }
+
+    public function shareholders()
+{
+    return $this->belongsToMany(Shareholder::class, 'shareholder_share')
+                ->withPivot('units')
+                ->withTimestamps();
+}
+
     protected $casts = [
         'is_active' => 'boolean',
         'is_board_member' => 'boolean',

@@ -2,9 +2,7 @@
 
 return [
 
-    /**
-     * Root Menu: Membership
-     */
+    // Root: Membership
     [
         'key'   => 'mumbos',
         'name'  => 'Membership',
@@ -13,57 +11,75 @@ return [
         'icon'  => 'icon-customer-2',
     ],
 
-    // Level 1: Membership Types (child of mumbos)
+    // ├── Membership Types
     [
-        'key'   => 'mumbos.membership-types',
-        'name'  => 'Membership Types',
-        'route' => 'admin.membership-types.index',
-        'sort'  => 1,
-        'icon'  => '',
+        'key'    => 'mumbos.membership-types',
+        'name'   => 'Membership Types',
+        'route'  => 'admin.membership-types.index',
+        'sort'   => 1,
+        'icon'   => '',
+        'parent' => 'mumbos',
     ],
 
-    // Level 1: Shareholders (child of mumbos)
+    // ├── Shareholders
     [
-        'key'   => 'mumbos.shareholders',
-        'name'  => 'Shareholders',
-        'route' => 'admin.shareholders.index',
-        'sort'  => 2,
-        'icon'  => '',
+        'key'    => 'mumbos.shareholders',
+        'name'   => 'Shareholders',
+        'route'  => 'admin.shareholders.index',
+        'sort'   => 2,
+        'icon'   => '',
+        'parent' => 'mumbos',
     ],
 
-    // Level 2: Contact Messages (child of shareholders)
+   
+
+    // │   └── Shares
     [
-        'key'   => 'mumbos.shareholders.contacts',
-        'name'  => 'Contact Messages',
-        'route' => 'admin.shareholders.contact-us',
-        'sort'  => 1,
-        'icon'  => '',
+        'key'    => 'mumbos.shareholders.shares',
+        'name'   => 'Shares Allocation',
+        'route'  => 'admin.shares.index',
+        'sort'   => 1,
+        'icon'   => '',
+        'parent' => 'mumbos.shareholders',
+    ],
+     // │   ├── Contact Messages
+    [
+        'key'    => 'mumbos.shareholders.contacts',
+        'name'   => 'Contact Messages',
+        'route'  => 'admin.shareholders.contact-us',
+        'sort'   => 2,
+        'icon'   => '',
+        'parent' => 'mumbos.shareholders',
     ],
 
-    // Level 1: Contributions (child of mumbos)
+    // ├── Contributions
     [
-        'key'   => 'mumbos.contributions',
-        'name'  => 'Contributions',
-        'route' => 'admin.contributions.index',
-        'sort'  => 3,
-        'icon'  => '',
+        'key'    => 'mumbos.contributions',
+        'name'   => 'Contributions',
+        'route'  => 'admin.contributions.index',
+        'sort'   => 3,
+        'icon'   => '',
+        'parent' => 'mumbos',
     ],
 
-    // Level 2: Incentives (child of contributions)
-    [
-        'key'   => 'mumbos.contributions.incentives',
-        'name'  => 'Incentives',
-        'route' => 'admin.incentives.index',
-        'sort'  => 1,
-        'icon'  => '',
-    ],
 
-    // Level 2: Phases (child of contributions)
+
+    // │   └── Contribution Phase
     [
-        'key'   => 'mumbos.contributions.phases',
-        'name'  => 'Contribution Phase',
-        'route' => 'admin.phases.index',
-        'sort'  => 2,
-        'icon'  => '',
+        'key'    => 'mumbos.contributions.phases',
+        'name'   => 'Contribution Phase',
+        'route'  => 'admin.phases.index',
+        'sort'   => 1,
+        'icon'   => '',
+        'parent' => 'mumbos.contributions',
+    ],
+        // │   ├── Incentives
+    [
+        'key'    => 'mumbos.contributions.incentives',
+        'name'   => 'Incentives',
+        'route'  => 'admin.incentives.index',
+        'sort'   => 2,
+        'icon'   => '',
+        'parent' => 'mumbos.contributions',
     ],
 ];

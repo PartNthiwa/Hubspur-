@@ -12,7 +12,16 @@ use Webkul\User\Models\Admin;
 
 class Phase extends Model implements PhaseContract
 {
-    protected $fillable = ['name','share_value','description'];
+
+    use SoftDeletes;
+    protected $fillable = ['name','share_value', 'starts_at',
+    'ends_at','description'];
+
+    protected $casts = [
+            'starts_at' => 'datetime',
+            'ends_at'   => 'datetime',
+        ];
+
     public function contributions()
     {
         return $this->hasMany(Contribution::class);

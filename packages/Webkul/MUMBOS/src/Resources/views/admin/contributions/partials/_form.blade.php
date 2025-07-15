@@ -1,12 +1,12 @@
 @php
     $defaultMethod = old('payment_method') ?? ($contribution->payment_method ?? 'cash');
-     $selectedPaymentMethod = old('payment_method', $contribution->payment_method ?? '');
+    $selectedPaymentMethod = old('payment_method', $contribution->payment_method ?? '');
 @endphp
 
 <div class="bg-white rounded-xl shadow-md p-6 space-y-6">
 
-    {{-- Row 1: Shareholder + Amount --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {{-- Row 1: Shareholder + Phase + Type + Amount --}}
+    <div class="grid grid-cols-2 gap-6">
         <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Shareholder <span class="text-red-500">*</span></label>
             <select name="shareholder_id" required
@@ -20,12 +20,10 @@
             @error('shareholder_id') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
-        <div class="mb-4">
-            <label for="phase_id" class="block text-sm font-medium text-gray-700">
-                Phase
-            </label>
+        <div>
+            <label for="phase_id" class="block text-sm font-medium text-gray-700">Phase</label>
             <select name="phase_id" id="phase_id"
-                    class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
+                    class="w-full mt-1 border border-gray-300 rounded-md shadow-sm px-3 py-2" required>
                 <option value="">Select Phase</option>
                 @foreach($phases as $phase)
                     <option value="{{ $phase->id }}"
@@ -34,33 +32,21 @@
                     </option>
                 @endforeach
             </select>
-            @error('phase_id')
-                <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-            @enderror
+            @error('phase_id') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
         </div>
-        {{-- Contribution Type --}}
-<div>
-    <label for="type" class="block text-sm font-medium text-gray-700">Contribution Type</label>
-    <select name="type" id="type"
-            class="mt-1 block w-full border-gray-300 rounded-md shadow-sm" required>
-        <option value="">-- Select Type --</option>
-        <option value="membership" {{ old('type', $contribution->type ?? '') === 'membership' ? 'selected' : '' }}>
-            Membership
-        </option>
-         <option value="regular" {{ old('type', $contribution->type ?? '') === 'regular' ? 'selected' : '' }}>
-            Regular
-        </option>
-        <option value="capital" {{ old('type', $contribution->type ?? '') === 'capital' ? 'selected' : '' }}>
-            Capital
-        </option>
-        <option value="other" {{ old('type', $contribution->type ?? '') === 'other' ? 'selected' : '' }}>
-            Other
-        </option>
-    </select>
-    @error('type')
-        <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
-    @enderror
-</div>
+
+        <div>
+            <label for="type" class="block text-sm font-medium text-gray-700">Contribution Type</label>
+            <select name="type" id="type"
+                    class="w-full mt-1 border border-gray-300 rounded-md shadow-sm px-3 py-2" required>
+                <option value="">-- Select Type --</option>
+                <option value="membership" {{ old('type', $contribution->type ?? '') === 'membership' ? 'selected' : '' }}>Membership</option>
+                <option value="regular" {{ old('type', $contribution->type ?? '') === 'regular' ? 'selected' : '' }}>Regular</option>
+                <option value="capital" {{ old('type', $contribution->type ?? '') === 'capital' ? 'selected' : '' }}>Capital</option>
+                <option value="other" {{ old('type', $contribution->type ?? '') === 'other' ? 'selected' : '' }}>Other</option>
+            </select>
+            @error('type') <p class="text-red-600 text-xs mt-1">{{ $message }}</p> @enderror
+        </div>
 
         <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
@@ -71,8 +57,8 @@
         </div>
     </div>
 
-    {{-- Row 2: Currency + Payment Status --}}
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    {{-- Row 2: Currency + Date --}}
+    <div class="grid grid-cols-2 gap-6">
         <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Currency</label>
             <select name="currency"
@@ -85,7 +71,8 @@
             </select>
             @error('currency') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
-<div>
+
+        <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Date</label>
             <input type="date" name="contributed_at" required
                    value="{{ old('contributed_at', isset($contribution) && $contribution->contributed_at ? $contribution->contributed_at->format('Y-m-d') : '') }}"
@@ -94,13 +81,10 @@
         </div>
     </div>
 
-
-    {{-- Row 4: Payment Method --}}
+    {{-- Row 3: Payment Method --}}
     <div x-data="{ method: '{{ $defaultMethod }}' }"
-         x-init="$watch('method', value => console.log('Selected payment method:', value))"
-         class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6 bg-gray-50 p-4 rounded-4xl shadow-sm mb-6">
+         class="grid grid-cols-2 gap-6 mt-6 bg-gray-50 p-4 rounded-2xl shadow-sm mb-6">
 
-        {{-- Payment Method Selection --}}
         <div>
             <label class="block text-sm font-semibold text-gray-700 mb-1">Payment Method</label>
             <select name="payment_method" x-model="method"
@@ -114,32 +98,29 @@
             @error('payment_method') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
         </div>
 
-        {{-- Payment Method Details --}}
-        <div class="mt-4 space-y-4">
+        <div class="space-y-4">
             <div x-show="method === 'cash'" class="p-4 bg-gray-50 border rounded">
                 @include('mumbos::admin.contributions.partials._gateway_cash')
             </div>
-
             <div x-show="method === 'bank_transfer'" class="p-4 bg-gray-50 border rounded">
                 @include('mumbos::admin.contributions.partials._gateway_bank_transfer')
             </div>
-
             <div x-show="method === 'mpesa'" class="p-4 bg-gray-50 border rounded">
                 @include('mumbos::admin.contributions.partials._gateway_mpesa')
             </div>
-
             <div x-show="method === 'paypal'" class="p-4 bg-gray-50 border rounded">
                 @include('mumbos::admin.contributions.partials._gateway_paypal')
             </div>
         </div>
     </div>
 
-    {{-- Row 5: Note --}}
-    <div>
-        <label class="block text-sm font-semibold text-gray-700 mb-1">Note (optional)</label>
-        <textarea name="note" rows="3"
-                  class="w-full border @error('note') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2">{{ old('note', $contribution->note ?? '') }}</textarea>
-        @error('note') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+    {{-- Row 4: Note (spans both columns) --}}
+    <div class="grid grid-cols-2 gap-6">
+        <div class="col-span-2">
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Note (optional)</label>
+            <textarea name="note" rows="3"
+                      class="w-full border @error('note') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2">{{ old('note', $contribution->note ?? '') }}</textarea>
+            @error('note') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+        </div>
     </div>
-
 </div>

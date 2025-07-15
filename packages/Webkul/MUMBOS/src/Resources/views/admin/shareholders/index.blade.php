@@ -55,9 +55,10 @@
                         <th class="px-6 py-3 border border-gray-300 text-left">Member Number</th>
                         <th class="px-6 py-3 border border-gray-300 text-left">Full Name</th>
                         <th class="px-6 py-3 border border-gray-300 text-left">Membership Types</th>
-                        <th class="px-6 py-3 border border-gray-300 text-left">Membership Paid</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Membership Contribution</th>
                         <th class="px-6 py-3 border border-gray-300 text-left">Capital Contribution</th>
                         <th class="px-6 py-3 border border-gray-300 text-left">Incentives</th>
+                        <th class="px-6 py-3 border border-gray-300 text-left">Assigned Shares</th>
                         <th class="px-6 py-3 border border-gray-300 text-left">Capital Shares</th>
                         <th class="px-6 py-3 border border-gray-300 text-left">Total Shares</th>
                         <th class="px-6 py-3 border border-gray-300 text-left">Total Contributions</th>
@@ -75,8 +76,8 @@
                             $shareValue = $shareholder->phase->share_value ?? 1000;
                             $contributionShares = $shareValue > 0 ? $nonMembershipTotal / $shareValue : 0;
                             $incentiveShares = $shareholder->incentives->sum(fn($i) => $i->pivot->units ?? 0);
-
-                            $totalShares = $contributionShares + $incentiveShares;
+                            $assignedShares = $shareholder->shares->sum(fn($s)=> $s->pivot->units);
+                            $totalShares = $contributionShares + $incentiveShares + $assignedShares;
                         @endphp
 
                         <tr x-show="matches($el)"
@@ -132,6 +133,18 @@
     @endforelse
 </td>
 
+<td class="px-6 py-4 border">
+    @forelse($shareholder->shares as $share)
+        <div class="text-sm">
+            {{ $share->class }} – {{ $share->pivot->units }} shares
+        </div>
+    @empty
+        <span class="text-gray-400 italic">–</span>
+    @endforelse
+</td>
+
+
+
 
 
                             <td class="px-6 py-4 border">{{ number_format($contributionShares) }}</td>
@@ -177,6 +190,136 @@
             </table>
         </div>
 
+
+        {{-- Shareholder Details Preview (if only 1 visible row) --}}
+<div x-show="visibleCount === 1 && search.length > 0" x-cloak class="p-6  bg-gray-50 border-t border-gray-200">
+    <div class="w-full mt-10 h-2 my-6 rounded-full bg-gradient-to-r from-green-600 via-blue-500 to-purple-600 shadow-md"></div>
+<div style="height: 4px; background: linear-gradient(to right, green, blue, red);"></div>
+    @php
+        $firstVisible = $shareholders->first(); // fallback if only 1 is visible
+    @endphp
+    <div class="max-w-4xl mx-auto text-left space-y-4">
+        <h2 class="text-lg font-bold text-gray-800">Shareholder Details</h2>
+        <div class="grid md:grid-cols-2 gap-4 text-sm">
+            <div>
+                <p class="text-gray-500">Name:</p>
+                <p class="font-medium text-gray-800">
+                    {{ $firstVisible->customer->first_name }} {{ $firstVisible->customer->last_name }}
+                </p>
+            </div>
+            <div>
+                <p class="text-gray-500">Member Number:</p>
+                <p class="font-medium text-gray-800">
+                    {{ $firstVisible->shareholder_number }}
+                </p>
+            </div>
+            <div>
+                <p class="text-gray-500">Email:</p>
+                <p class="font-medium text-gray-800">
+                    {{ $firstVisible->customer->email }}
+                </p>
+            </div>
+            <div>
+                <p class="text-gray-500">Phone:</p>
+                <p class="font-medium text-gray-800">
+                    {{ $firstVisible->phone ?? 'N/A' }}
+                </p>
+            </div>
+           <div>
+            <p class="text-gray-500 font-medium mb-1">Capital Contributions</p>
+            <ul class="list-disc list-inside text-gray-700 space-y-1">
+                @php
+                    $capitalGrouped = $firstVisible->contributions
+                        ->where('type', 'capital')
+                        ->where('status', 'approved')
+                        ->groupBy(fn($c) => $c->phase->name ?? 'Unknown Phase');
+                @endphp
+
+                @forelse ($capitalGrouped as $phaseName => $contributions)
+                    <li>
+                        <span class="font-semibold">{{ $phaseName }}:</span>
+                        KES {{ number_format($contributions->sum('amount'), 2) }}
+                    </li>
+                @empty
+                    <li class="text-gray-400">No capital contributions found.</li>
+                @endforelse
+            </ul>
+        </div>
+
+        <div class="mt-4">
+            <p class="text-gray-500 font-medium">Other Contributions (excluding capital & membership):</p>
+            <p class="font-semibold text-gray-800">
+                KES {{
+                    number_format(
+                        $firstVisible->contributions
+                            ->filter(fn($c) => !in_array(strtolower($c->type), ['membership', 'capital']) && $c->status === 'approved')
+                            ->sum('amount'),
+                        2
+                    )
+                }}
+            </p>
+        </div>
+
+
+            <div>
+                <p class="text-gray-500">Status:</p>
+                <p class="font-medium text-gray-800">
+                    {{ $firstVisible->is_active ? 'Active' : 'Inactive' }}
+                </p>
+            </div>
+
+           <div class="mt-6 flex flex-wrap gap-4">
+
+    {{-- View Profile --}}
+    <a href="{{ route('admin.shareholders.show', $firstVisible) }}"
+       class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition">
+        <x-heroicon-s-eye class="w-5 h-5 mr-2" />
+        View Full Profile
+    </a>
+
+    {{-- Edit Member --}}
+    <a href="{{ route('admin.shareholders.edit', $firstVisible) }}"
+       class="inline-flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-md transition">
+        <x-heroicon-s-pencil class="w-5 h-5 mr-2" />
+        Edit Member
+    </a>
+
+    {{-- Send Email (only if email exists) --}}
+    @if($firstVisible->customer->email)
+        <a href="mailto:{{ $firstVisible->customer->email }}"
+           class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition">
+            <x-heroicon-s-envelope class="w-5 h-5 mr-2" />
+            Send Email
+        </a>
+    @else
+        <button disabled
+                class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 text-sm rounded-md cursor-not-allowed">
+            <x-heroicon-s-envelope class="w-5 h-5 mr-2" />
+            No Email Available
+        </button>
+    @endif
+
+    {{-- Download Statement (only if available) --}}
+    @php
+        $statementUrl = route('admin.shareholders.statement', $firstVisible->shareholder_number);
+    @endphp
+<a href="{{ route('admin.shareholders.statement', $firstVisible->shareholder_number) }}"
+   onclick="showToast()"
+   download
+   class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-indigo-600 text-white text-sm rounded-md transition">
+    <x-heroicon-s-arrow-down-tray class="w-5 h-5 mr-2" />
+    View/Download Statement
+</a>
+
+
+
+</div>
+
+
+        </div>
+    </div>
+</div>
+
         {{-- Pagination --}}
         <div class="px-6 py-4 bg-gray-50 flex justify-end">
             {{ $shareholders->links() }}
@@ -184,4 +327,33 @@
     </div>
 
     <script src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+<div id="toast"
+     style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            z-index: 9999; background-color: #1f2937; color: #fff;
+            padding: 16px 28px; border-radius: 10px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.3); font-size: 16px;">
+    Generating statement...
+</div>
+
+   
+
+<div class="w-full h-2 my-6 rounded-full bg-gradient-to-r from-green-600 via-blue-500 to-purple-600 shadow-md"></div>
+<div style="height: 4px; background: linear-gradient(to right, green, blue, red);"></div>
+ <div class="mt-4 text-center text-sm text-gray-500">
+        &copy; {{ date('Y') }} MUMBO Kenya Diaspora Investments Ltd. All rights reserved.
+    </div>
+
+
+<script>
+    function showToast(message = 'Generating statement...') {
+        const toast = document.getElementById('toast');
+        toast.textContent = message;
+        toast.style.display = 'block';
+
+        setTimeout(() => {
+            toast.style.display = 'none';
+        }, 3000);
+    }
+</script>
 </x-admin::layouts>
+

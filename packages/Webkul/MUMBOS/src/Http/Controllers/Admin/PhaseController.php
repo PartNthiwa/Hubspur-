@@ -6,14 +6,34 @@ use Illuminate\Routing\Controller;
 use Webkul\MUMBOS\Models\Phase;
 use Webkul\MUMBOS\Http\Requests\PhaseRequest;  
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\RedirectResponse;
 
 class PhaseController extends Controller
 {
     public function index()
     {
-        $phases = Phase::orderBy('id')->paginate(15);
+       $phases = Phase::withTrashed()
+                   ->orderBy('id')
+                   ->paginate(15);
         return view('mumbos::admin.phases.index', compact('phases'));
     }
+
+public function restore($id): RedirectResponse
+{
+    $phase = Phase::withTrashed()->findOrFail($id);
+    $phase->restore();
+
+    return redirect()->route('admin.phases.index')->with('success', 'Phase restored successfully.');
+}
+
+public function forceDelete($id): RedirectResponse
+{
+    $phase = Phase::withTrashed()->findOrFail($id);
+    $phase->forceDelete();
+
+    return redirect()->route('admin.phases.index')->with('success', 'Phase permanently deleted.');
+}
 
     public function create()
     {

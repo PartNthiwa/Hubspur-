@@ -16,6 +16,9 @@ return new class extends Migration
             $table->string('name');    
             $table->decimal('share_value',12,2);
             $table->string('description')->nullable(); 
+            $table->dateTime('starts_at')->nullable();
+            $table->dateTime('ends_at')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

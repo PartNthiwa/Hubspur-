@@ -21,7 +21,7 @@ use Webkul\MUMBOS\Models\ShareholderContribution;
 use Webkul\MUMBOS\Models\ShareholderAuth;
 use Webkul\MUMBOS\Models\Contribution;
 use Webkul\MUMBOS\Http\Controllers\Shop\ShareholderGroupController;
-use Webkul\MUMBOS\Http\Controllers\Shop\ShareController;
+
 use Webkul\MUMBOS\Http\Controllers\Shop\ShareholderContributionController;
 use Webkul\MUMBOS\Http\Controllers\Shop\MUMBOSController;
 
@@ -60,14 +60,8 @@ Route::group([
     Route::post('/shareholder/profile/update', [ShareholderController::class, 'updateProfile'])->name('shop.shareholders.profile.update');                  
     Route::get('/shareholder/profile/change-password', [ShareholderController::class, 'showChangePasswordForm'])->name('shop.shareholders.profile.change-password.form');
     Route::post('/shareholder/profile/change-password', [ShareholderController::class, 'changePassword'])->name('shop.shareholders.profile.change-password');   
-    // Shareholder Shares
-    Route::get('/shareholder/shares', [ShareController::class, 'index'])->name('shop.shareholders.shares.index');
-    Route::get('/shareholder/shares/create', [ShareController::class, 'create'])->name('shop.shareholders.shares.create');
-    Route::post('/shareholder/shares', [ShareController::class, 'store'])->name('shop.shareholders.shares.store');
-    Route::get('/shareholder/shares/{share}', [ShareController::class, 'show'])->name('shop.shareholders.shares.show');
-    Route::get('/shareholder/shares/{share}/edit', [ShareController::class, 'edit'])->name('shop.shareholders.shares.edit');
-    Route::put('/shareholder/shares/{share}', [ShareController::class, 'update'])->name('shop.shareholders.shares.update');
-    Route::delete('/shareholder/shares/{share}', [ShareController::class, 'destroy'])->name('shop.shareholders.shares.destroy');    
+
+  
     // Shareholder Contributions
     Route::get('/shareholder/contributions', [ContributionController::class, 'index'])->name('shop.shareholders.contributions.index');
     Route::get('/shareholder/contributions/create', [ContributionController::class, 'create'])->name('shop.shareholders.contributions.create');

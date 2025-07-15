@@ -88,4 +88,11 @@
             </a>
         </div>
     </form>
+  
+<h2 class="text-lg font-bold text-gray-800">Shareholder Details</h2>
+<div class="w-full h-2 my-6 rounded-full bg-gradient-to-r from-green-600 via-blue-500 to-purple-600 shadow-md"></div>
+<div style="height: 4px; background: linear-gradient(to right, green, blue, red);"></div>
+ <div class="mt-4 text-center text-sm text-gray-500">
+        &copy; {{ date('Y') }} MUMBO Kenya Diaspora Investments Ltd. All rights reserved.
+    </div>
 </x-admin::layouts>

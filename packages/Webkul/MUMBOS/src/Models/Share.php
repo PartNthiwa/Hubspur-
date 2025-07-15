@@ -3,6 +3,7 @@
 namespace Webkul\MUMBOS\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Webkul\MUMBOS\Models\Shareholder;
 use Webkul\MUMBOS\Contracts\Share as ShareContract;
 
 class Share extends Model implements ShareContract
@@ -23,7 +24,7 @@ class Share extends Model implements ShareContract
      */
 
     protected $fillable = [
-    'class', 'units', 'available_units', 'price_per_unit', 'total_value',
+    'class', 'units','origin', 'available_units', 'price_per_unit', 'total_value',
     'description', 'icon_url', 'is_active', 'visibility'
 ];
 
@@ -43,8 +44,9 @@ class Share extends Model implements ShareContract
 
     public function shareholder()
     {
-        return $this->belongsTo(\Webkul\MUMBOS\Models\Shareholder::class);
+        return $this->belongsTo(Shareholder::class);
     }
+
 
     public function getTotalValueAttribute()
     {
@@ -52,7 +54,7 @@ class Share extends Model implements ShareContract
     }
     public function shareholders()
 {
-    return $this->belongsToMany(\App\Models\Shareholder::class, 'shareholder_share')
+    return $this->belongsToMany(Shareholder::class, 'shareholder_share')
                 ->withPivot('units')
                 ->withTimestamps();
 }

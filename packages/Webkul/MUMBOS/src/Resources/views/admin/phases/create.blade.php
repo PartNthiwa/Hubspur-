@@ -71,6 +71,19 @@
             <p class="text-red-600 text-xs mt-1">{{ $message }}</p>
         @enderror
     </div>
+<div class="mb-4">
+    <label for="starts_at" class="block text-sm font-medium text-gray-700">Start Date</label>
+    <input type="date" name="starts_at" id="starts_at"
+           value="{{ old('starts_at', isset($phase) ? $phase->starts_at?->format('Y-m-d') : '') }}"
+           class="mt-1 block w-full border border-gray-300 rounded-md px-2 py-2 shadow-sm">
+</div>
+
+<div class="mb-4">
+    <label for="ends_at" class="block text-sm font-medium text-gray-700">End Date</label>
+    <input type="date" name="ends_at" id="ends_at"
+           value="{{ old('ends_at', isset($phase) ? $phase->ends_at?->format('Y-m-d') : '') }}"
+           class="mt-1 block w-full border border-gray-300 rounded-md px-2 py-2 shadow-sm">
+</div>
 
 
     <button type="submit"

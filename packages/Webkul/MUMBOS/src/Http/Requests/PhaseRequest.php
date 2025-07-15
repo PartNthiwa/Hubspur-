@@ -13,13 +13,15 @@ class PhaseRequest extends FormRequest
 
     public function rules()
     {
-        // On update, ignore the current record’s unique name
+      
         $phaseId = $this->route('phase')?->id;
 
-        return [
-            'name'        => "required|string|unique:phases,name,{$phaseId}",
-            'share_value' => 'required|numeric|min:0.01',
-            'description' => 'nullable|string',
-        ];
+       return [
+        'name'        => 'required|string|max:255',
+        'share_value' => 'required|numeric|min:0',
+        'description' => 'nullable|string',
+        'starts_at'   => 'nullable|date',
+        'ends_at'     => 'nullable|date',
+    ];
     }
 }

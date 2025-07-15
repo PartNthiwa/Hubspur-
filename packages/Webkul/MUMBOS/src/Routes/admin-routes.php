@@ -14,14 +14,19 @@ use Webkul\MUMBOS\Http\Controllers\Admin\MpesaCallbackController;
 
 Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions'], function () {
 
+
+    
     Route::resource('membership-types', MembershipTypeController::class, ['as' => 'admin']);
     Route::resource('phases', PhaseController::class, ['as' => 'admin']);
     Route::resource('incentives', IncentiveController::class, ['as' => 'admin']);
 
-
 });
 
+Route::post('admin/contributions/phases/{id}/restore', [PhaseController::class, 'restore'])
+    ->name('admin.contributions.phases.restore.custom');
 
+Route::delete('admin/contributions/phases/{id}/force-delete', [PhaseController::class, 'forceDelete'])
+    ->name('admin.contributions.phases.force-delete.custom');
 
 Route::group([
     'middleware' => ['web', 'admin'],
@@ -44,6 +49,9 @@ Route::group([
         Route::post('/{shareholderNumber}/send-reset-link',  'sendResetLink')
             ->name('send-reset-link');
 
+        Route::get('/{shareholder_number}/statement', 'generateStatement')->name('statement');
+
+        Route::post('/send-email','sendEmail')->name('send-email');
 
      Route::post('/{shareholder}/allocate-shares', 'allocateShares')->name('allocate-shares');
      Route::put('/{shareholderId}/update-units/{shareId}',  'updateShareUnits')->name('update-units');
@@ -54,18 +62,31 @@ Route::group([
 });
 
 
+Route::prefix('admin/shares')
+     ->middleware(['web','admin'])
+     ->controller(ShareController::class)
+     ->group(function () {
 
-Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/shares'], function () {
-    Route::controller(ShareController::class)->group(function () {
-        Route::get('/', 'index')->name('admin.shares.index');
-        Route::get('/create', 'create')->name('admin.shares.create');
-        Route::post('/', 'store')->name('admin.shares.store');
-        Route::get('/{share}/edit', 'edit')->name('admin.shares.edit');
-           Route::get('/{share}', 'show')->name('admin.shares.show');
-        Route::put('/{share}', 'update')->name('admin.shares.update');
-        Route::delete('/{share}', 'destroy')->name('admin.shares.destroy');
-    });
-});
+          
+    // INDEX / CREATE / STORE
+    Route::get('/',       'index')->name('admin.shares.index');
+    Route::get('create',  'create')->name('admin.shares.create');
+    Route::post('/',      'store')->name('admin.shares.store');
+
+    // ALLOCATE FORM & ACTION
+    Route::get('{share}/allocate',               'allocateForm')->name('admin.shares.allocate-form');
+    Route::post('{share}/allocate',              'allocate')->name('admin.shares.allocate');
+ 
+
+    // EDIT / UPDATE / DELETE
+    Route::get('{share}/edit',   'edit')->name('admin.shares.edit');
+    Route::put('{share}',         'update')->name('admin.shares.update');
+    Route::delete('{share}',      'destroy')->name('admin.shares.destroy');
+Route::put('{share}/allocate/{shareholder}', 'updateAllocation') ->name('admin.shares.update-allocation');
+
+    // SHOW (always last, so it doesn’t “catch” other URLs)
+    Route::get('{share}',         'show')->name('admin.shares.show');
+});;
 
 
 
@@ -80,22 +101,20 @@ Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions
         Route::delete('{contribution}', 'destroy')->name('admin.contributions.destroy');
         Route::get('{contribution}', 'show')->name('admin.contributions.show');
 
- 
-          Route::post('{contribution}/approve', 'approve') ->name('admin.contributions.approve');
-        Route::post('{contribution}/reject', 'reject') ->name('admin.contributions.reject');
-        // Route::get('{contribution}/receipt-preview', 'previewReceipt')->name('admin.contributions.receipt-preview');
-   
-Route::post('{contribution}/recheck', [ContributionController::class, 'recheckStatus'])
-    ->name('admin.contributions.recheck');
+        Route::post('{contribution}/approve', 'approve')->name('admin.contributions.approve');
+        Route::post('{contribution}/reject', 'reject')->name('admin.contributions.reject');
 
+        Route::post('{contribution}/recheck', 'recheckStatus')->name('admin.contributions.recheck');
 
-    Route::post('/admin/contributions/pay',  'initiate')->name('admin.contributions.pay');
+        Route::post('pay', 'initiate')->name('admin.contributions.pay');
 
+    
     });
-
-
 });
 
+Route::post('/admin/contributions/bulk-action', [ContributionController::class, 'bulkAction'])
+
+    ->name('admin.contributions.bulk-action');
 
 Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/mumbos'], function () {
     Route::controller(MUMBOSController::class)->group(function () {
