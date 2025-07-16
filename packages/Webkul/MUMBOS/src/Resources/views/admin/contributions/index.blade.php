@@ -93,6 +93,8 @@
                             <th class="px-4 py-2 border">Payment</th>
                             <th class="px-4 py-2 border">Date</th>
                             <th class="px-4 py-2 border">Approval</th>
+                            <th class="px-4 py-2 border">Actions</th>
+
                         </tr>
                     </thead>
                     <tbody class="bg-white divide-y" x-init="visibleCount = 0">
@@ -136,6 +138,14 @@
                                         </span>
                                     @endif
                                 </td>
+                                <td class="px-4 py-2 border text-center">
+                                    <a href="{{ route('admin.contributions.edit', $c->id) }}"
+                                    class="inline-flex items-center text-blue-600 hover:underline text-sm">
+                                        <x-heroicon-s-pencil class="w-4 h-4 mr-1" />
+                                        Edit
+                                    </a>
+                                </td>
+
                             </tr>
                         @empty
                             <tr x-show="visibleCount === 0">

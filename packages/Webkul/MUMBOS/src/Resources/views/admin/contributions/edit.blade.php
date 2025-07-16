@@ -26,13 +26,134 @@
         @csrf
         @method('PUT')
 
-        {{-- Shareholder selector, amount, method, etc. --}}
-        @include('mumbos::admin.contributions.partials._form', [
-            'contribution' => $contribution,
-            'shareholders' => $shareholders,
-        ])
+        <div class="grid grid-cols-2 gap-6">
+            {{-- Shareholder --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Shareholder <span class="text-red-500">*</span></label>
+                <select name="shareholder_id" required
+                        class="w-full border @error('shareholder_id') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2">
+                    @foreach($shareholders as $sh)
+                        <option value="{{ $sh->id }}" {{ old('shareholder_id', $contribution->shareholder_id) == $sh->id ? 'selected' : '' }}>
+                            {{ $sh->customer->first_name }} {{ $sh->customer->last_name }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('shareholder_id') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
 
-        {{-- Receipt upload --}}
+            {{-- Phase --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Phase <span class="text-red-500">*</span></label>
+                <select name="phase_id" required
+                        class="w-full border @error('phase_id') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2">
+                    @foreach($phases as $phase)
+                        <option value="{{ $phase->id }}" {{ old('phase_id', $contribution->phase_id) == $phase->id ? 'selected' : '' }}>
+                            {{ $phase->name }} (KES {{ number_format($phase->share_value, 2) }}/share)
+                        </option>
+                    @endforeach
+                </select>
+                @error('phase_id') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Type --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Contribution Type <span class="text-red-500">*</span></label>
+                <select name="type" required
+                        class="w-full border @error('type') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2">
+                    <option value="">-- Select Type --</option>
+                    @foreach(['membership', 'regular', 'capital', 'other'] as $type)
+                        <option value="{{ $type }}" {{ old('type', $contribution->type) == $type ? 'selected' : '' }}>
+                            {{ ucfirst($type) }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('type') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Amount --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Amount <span class="text-red-500">*</span></label>
+                <input type="number" step="0.01" name="amount" required
+                       value="{{ old('amount', $contribution->amount) }}"
+                       class="w-full border @error('amount') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2" />
+                @error('amount') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Currency --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Currency</label>
+                <select name="currency"
+                        class="w-full border @error('currency') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2">
+                    @foreach(['KES', 'USD', 'EUR'] as $currency)
+                        <option value="{{ $currency }}" {{ old('currency', $contribution->currency) == $currency ? 'selected' : '' }}>
+                            {{ $currency }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('currency') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Date --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Date</label>
+                <input type="date" name="contributed_at" required
+                       value="{{ old('contributed_at', optional($contribution->contributed_at)->format('Y-m-d')) }}"
+                       class="w-full border @error('contributed_at') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2" />
+                @error('contributed_at') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Payment Method --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Payment Method</label>
+                <select name="payment_method"
+                        class="w-full border @error('payment_method') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2">
+                    @foreach(['cash', 'bank_transfer', 'mpesa', 'paypal'] as $method)
+                        <option value="{{ $method }}" {{ old('payment_method', $contribution->payment_method) == $method ? 'selected' : '' }}>
+                            {{ ucfirst(str_replace('_', ' ', $method)) }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('payment_method') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Payment Status --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Payment Status</label>
+                <select name="payment_status"
+                        class="w-full border @error('payment_status') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2">
+                    @foreach(['pending', 'completed', 'failed'] as $status)
+                        <option value="{{ $status }}" {{ old('payment_status', $contribution->payment_status) == $status ? 'selected' : '' }}>
+                            {{ ucfirst($status) }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('payment_status') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+
+            {{-- Status --}}
+            <div>
+                <label class="block text-sm font-semibold text-gray-700 mb-1">Approval Status</label>
+                <select name="status"
+                        class="w-full border @error('status') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2">
+                    @foreach(['pending', 'approved', 'rejected'] as $status)
+                        <option value="{{ $status }}" {{ old('status', $contribution->status) == $status ? 'selected' : '' }}>
+                            {{ ucfirst($status) }}
+                        </option>
+                    @endforeach
+                </select>
+                @error('status') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+            </div>
+        </div>
+
+        {{-- Note --}}
+        <div>
+            <label class="block text-sm font-semibold text-gray-700 mb-1">Note (optional)</label>
+            <textarea name="note" rows="3"
+                      class="w-full border @error('note') border-red-500 @else border-gray-300 @enderror rounded-lg px-3 py-2">{{ old('note', $contribution->note) }}</textarea>
+            @error('note') <p class="text-sm text-red-500 mt-1">{{ $message }}</p> @enderror
+        </div>
+
+        {{-- Payment Receipt --}}
         <div>
             <label class="block text-sm font-medium text-gray-700">Payment Receipt</label>
             @if($contribution->payment_receipt)
@@ -51,6 +172,7 @@
             <p class="text-xs text-gray-500 mt-1">Upload a new file to replace the existing receipt.</p>
         </div>
 
+        {{-- Actions --}}
         <div class="flex gap-3 pt-2">
             <button type="submit"
                     class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">

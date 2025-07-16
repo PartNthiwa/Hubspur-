@@ -22,6 +22,8 @@
         "bagisto/image-cache": "dev-master",
         "barryvdh/laravel-dompdf": "^2.2",
         "blade-ui-kit/blade-heroicons": "^2.6",
+        "chartisan/chartisan": "*",
+        "consoletvs/charts": "*",
         "diglactic/laravel-breadcrumbs": "^9.0",
         "elasticsearch/elasticsearch": "^8.10",
         "enshrined/svg-sanitize": "^0.16.0",

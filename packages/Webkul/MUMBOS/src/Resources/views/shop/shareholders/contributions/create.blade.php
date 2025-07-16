@@ -36,6 +36,28 @@
                 >
                     @csrf
 
+                    <div>
+                    <label class="block text-sm font-semibold text-gray-800">Contribution Type</label>
+                    <select name="type" required
+                            class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm px-3 py-2 text-gray-900">
+                        @foreach(['membership' => 'Membership', 'capital' => 'Capital', 'regular' => 'Regular', 'other' => 'Other'] as $val => $label)
+                            <option value="{{ $val }}" @selected(old('type') === $val)>{{ $label }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-sm font-semibold text-gray-800">Phase</label>
+                    <select name="phase_id" required
+                            class="mt-1 block w-full bg-white border border-gray-300 rounded-md shadow-sm px-3 py-2 text-gray-900">
+                        @foreach(\Webkul\MUMBOS\Models\Phase::orderBy('id')->get() as $phase)
+                            <option value="{{ $phase->id }}" @selected(old('phase_id') == $phase->id)>
+                                {{ $phase->title ?? 'Phase ' . $phase->id }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
                     {{-- Amount --}}
                     <div>
                         <label class="block text-sm font-semibold text-gray-800">Amount (KES)</label>

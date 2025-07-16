@@ -5,29 +5,74 @@
     :has-header="false"
     :has-footer="false"
 >
-       @include('mumbos::layouts.partials.admin-header')
+    @include('mumbos::layouts.partials.admin-header')
     <div class="flex min-h-screen bg-gray-200 text-gray-800">
-  @include('mumbos::layouts.partials.admin-sidebar')
+        @include('mumbos::layouts.partials.admin-sidebar')
 
         <div class="flex-1 flex flex-col w-full">
-          <div>
-            <h1 class="text-2xl font-bold mt-6 mb-4 ml-4">{{ __('Dashboard') }}</h1>
+       <div class="ml-4 mt-6 mb-6">
+    <div class="bg-white shadow-md rounded-lg p-6">
+        <div class="flex items-center justify-between">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 mb-1">Dashboard</h1>
+                <p class="text-gray-600">
+                    Welcome,
+                    <span class="text-emerald-700 font-semibold">
+                        {{ $shareholder->customer->full_name }} — {{ $shareholder->shareholder_number }}
+                    </span>
+                </p>
+                <p class="text-gray-500 text-sm mt-1">
+                    This is your dashboard. Here you can view your shareholdings and their details.
+                </p>
+            </div>
 
-           <p class="text-gray-600 mb-2 ml-4">
-                {{ __('Welcome,') }} 
-                <span class="text-emerald-700 font-semibold">
-                    {{ Auth::user()->shareholder->full_name }} - {{ Auth::user()->shareholder->shareholder_number }} 
-                  
-                </span>
-                <br><br>
-                {{ __('This is your dashboard. Here you can view your shareholdings and their details.') }}
-            </p>
+            {{-- Shareholder Status --}}
+            <div class="flex items-center space-x-3">
+            @php
+                $status = strtolower($shareholder->status ?? 'active'); // e.g. 'active', 'pending', 'suspended'
+                $statusColors = [
+                    'active' => 'text-green-600 bg-green-100',
+                    'pending' => 'text-yellow-600 bg-yellow-100',
+                    'suspended' => 'text-red-600 bg-red-100',
+                ];
+                $pulseColors = [
+                    'active' => 'bg-green-500',
+                    'pending' => 'bg-yellow-500',
+                    'suspended' => 'bg-red-500',
+                ];
+            @endphp
+
+            <!-- Beeping Dot -->
+            <span class="relative flex h-3 w-3">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full opacity-75 {{ $pulseColors[$status] ?? 'bg-gray-400' }}"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 {{ $pulseColors[$status] ?? 'bg-gray-400' }}"></span>
+            </span>
+
+            <!-- Status Text -->
+            <span class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium {{ $statusColors[$status] ?? 'text-gray-600 bg-gray-100' }}">
+                @switch($status)
+                    @case('active')
+                        Active
+                        @break
+                    @case('pending')
+                        Pending
+                        @break
+                    @case('suspended')
+                        Suspended
+                        @break
+                    @default
+                        Unknown
+                @endswitch
+            </span>
+        </div>
 
         </div>
-   
-            <main class="flex-1 p-6">
-                <h2 class="text-2xl font-bold mb-6">{{ __('My Shareholdings') }}</h2>
+    </div>
+</div>
 
+
+             <main class="flex-1 p-6">
+                <h2 class="text-2xl font-bold mb-6">{{ __('My Shareholdings') }}</h2>
                 @if ($shareholder->shares->isEmpty())
                     <div class="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded">
                         <p>{{ __('You have not purchased any shares yet.') }}</p>
@@ -67,12 +112,112 @@
                     </div>
                 @endif
             </main>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 px-6 mt-4">
 
-            {{-- Optional Footer --}}
-            <footer class="bg-green-500 border-t p-4 text-center text-sm text-white">
-                &copy; {{ date('Y') }} MUMBO Kenya. All rights reserved.
-            </footer>
+                <!-- Capital Contributions by Phase -->
+                <div class="bg-white p-4 rounded shadow">
+                    <h3 class="text-lg font-bold mb-4">Capital Contributions by Phase</h3>
+                    <div x-data="chartComponent('bar', {{ Js::from($capitalLabels) }}, [{
+                        label: 'Capital Contributions',
+                        data: {{ Js::from($capitalData) }},
+                        backgroundColor: 'rgba(34,197,94,0.6)'
+                    }])" x-init="render()" class="relative h-[300px]">
+                        <canvas></canvas>
+                    </div>
+                </div>
+
+                <!-- Monthly Contributions -->
+                <div class="bg-white p-4 rounded shadow">
+                    <h3 class="text-lg font-bold mb-4">Contribution Timeline</h3>
+                    <div x-data="chartComponent('line', {{ Js::from($timelineLabels) }}, [{
+                        label: 'Monthly Contributions',
+                        data: {{ Js::from($timelineData) }},
+                        backgroundColor: 'rgba(59,130,246,0.4)',
+                        borderColor: 'rgba(59,130,246,1)',
+                        fill: true
+                    }])" x-init="render()" class="relative h-[300px]">
+                        <canvas></canvas>
+                    </div>
+                </div>
+
+                <!-- Shares Owned -->
+                <div class="bg-white p-4 rounded shadow">
+                    <h3 class="text-lg font-bold mb-4">Share Distribution</h3>
+                    <div x-data="chartComponent('pie', {{ Js::from($shareLabels) }}, [{
+                        label: 'Shares Owned',
+                        data: {{ Js::from($shareData) }},
+                        backgroundColor: [
+                            'rgba(34,197,94,0.6)',
+                            'rgba(59,130,246,0.6)',
+                            'rgba(244,63,94,0.6)',
+                            'rgba(167,139,250,0.6)',
+                            'rgba(250,204,21,0.6)'
+                        ]
+                    }])" x-init="render()" class="relative h-[300px]">
+                        <canvas></canvas>
+                    </div>
+                </div>
+
+                <!-- Incentives Earned Over Time -->
+                <div class="bg-white p-4 rounded shadow">
+                    <h3 class="text-lg font-bold mb-4">Incentives Earned</h3>
+                    <div x-data="chartComponent('bar', {{ Js::from($incentiveLabels) }}, [{
+                        label: 'Incentives',
+                        data: {{ Js::from($incentiveData) }},
+                        backgroundColor: 'rgba(250,204,21,0.6)'
+                    }])" x-init="render()" class="relative h-[300px]">
+                        <canvas></canvas>
+                    </div>
+                </div>
+
+                <!-- Contributions by Type per Phase (Stacked) -->
+                <div class="bg-white p-4 rounded shadow col-span-1 md:col-span-2">
+                    <h3 class="text-lg font-bold mb-4">Phase-wise Contribution Breakdown</h3>
+                    <div x-data="chartComponent('bar', {{ Js::from($phases) }}, {{ Js::from($stackedData) }}, true)" x-init="render()" class="relative h-[350px]">
+                        <canvas></canvas>
+                    </div>
+                </div>
+
+            </div>
+         
+              @include('mumbos::layouts.partials.footer')
         </div>
     </div>
 
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script>
+        function chartComponent(type, labels, datasets, stacked = false) {
+            return {
+                render() {
+                    const canvas = this.$el.querySelector('canvas');
+                    if (!canvas) {
+                        console.warn('No canvas found');
+                        return;
+                    }
+
+                    new Chart(canvas.getContext('2d'), {
+                        type: type,
+                        data: {
+                            labels: labels,
+                            datasets: datasets
+                        },
+                        options: {
+                            responsive: true,
+                            maintainAspectRatio: false,
+                            plugins: {
+                                legend: { position: 'top' }
+                            },
+                            scales: stacked ? {
+                                x: { stacked: true },
+                                y: { stacked: true, beginAtZero: true }
+                            } : {
+                                y: { beginAtZero: true }
+                            }
+                        }
+                    });
+                }
+            };
+        }
+    </script>
 </x-shop::layouts>

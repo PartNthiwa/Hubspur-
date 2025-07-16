@@ -272,20 +272,23 @@ public function edit(Contribution $contribution)
 public function update(Request $request, Contribution $contribution)
     {
 
-        //  dd('update method hit');
         $data = $request->validate([
-            'shareholder_id'     => 'required|exists:shareholders,id',
-            'amount'             => 'required|numeric|min:0.01',
-            'currency'           => 'required|string|size:3',
-            'payment_method'     => 'required|in:cash,bank_transfer,mpesa,paypal',
-            'payment_channel'    => 'nullable|string',
-            'payment_reference'  => 'nullable|string',
-            'payment_receipt'    => 'nullable|file|mimes:jpg,png,pdf|max:2048',
-            'payment_status'     => 'required|in:pending,completed,failed',
-            'contributed_at'     => 'required|date',
-            'status'             => 'required|in:pending,approved,rejected',
-            'note'               => 'nullable|string',
-        ]);
+        'shareholder_id'     => 'required|exists:shareholders,id',
+        'phase_id'           => 'required|exists:phases,id', 
+        'type' => 'required|in:membership,regular,capital,other',
+
+        'amount'             => 'required|numeric|min:0.01',
+        'currency'           => 'required|string|size:3',
+        'payment_method'     => 'required|in:cash,bank_transfer,mpesa,paypal',
+        'payment_channel'    => 'nullable|string',
+        'payment_reference'  => 'nullable|string',
+        'payment_receipt'    => 'nullable|file|mimes:jpg,png,pdf|max:2048',
+        'payment_status'     => 'nullable|in:pending,completed,failed',
+        'contributed_at'     => 'required|date',
+        'status'             => 'nullable|in:pending,approved,rejected',
+        'note'               => 'nullable|string',
+    ]);
+
 
         // handle new receipt upload
         if ($request->hasFile('payment_receipt')) {
@@ -298,6 +301,9 @@ public function update(Request $request, Contribution $contribution)
                 ->file('payment_receipt')
                 ->store('contributions/receipts', 'public');
         }
+
+    $data['payment_status'] = $data['payment_status'] ?? 'pending';
+    $data['status'] = $data['status'] ?? 'pending';
 
         // if status changed to approved, set approver
         if ($data['status'] === 'approved' && $contribution->status !== 'approved') {

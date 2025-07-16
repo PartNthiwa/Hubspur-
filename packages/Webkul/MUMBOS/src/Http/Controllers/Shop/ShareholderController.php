@@ -16,8 +16,10 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\URL;
 use Webkul\MUMBOS\Models\ContactUs;
+use Webkul\MUMBOS\Models\MembershipType;
 use Illuminate\Support\Facades\DB;
 use Webkul\Shop\Http\Controllers\Controller;
+use App\Charts\CapitalContributionChart;
 
 class ShareholderController extends Controller
 {
@@ -79,11 +81,12 @@ class ShareholderController extends Controller
 
     public function info()
     {
-        $shareTypes = Share::where('is_active', true)
-            ->where('visibility', true)
-            ->orderBy('created_at', 'desc')
-            ->get();
-        return view('mumbos::shop.shareholders.info', compact('shareTypes'));
+          $membershipTypes = MembershipType::where('is_active', true)
+        ->orderBy('created_at', 'desc')
+        ->get();
+
+    return view('mumbos::shop.shareholders.info', compact('membershipTypes'));
+
     }
 
 
@@ -258,105 +261,63 @@ public function resetPassword(Request $request)
     }
 
 
-public function dashboard()
-{
-    // Get the currently authenticated user
-    $user = auth()->user();
-    // Ensure user is logged in
-    if (!$user) {
-        return redirect()->route('shop.shareholders.login')->with('error', 'You must be logged in to access the dashboard.');
-    }
-     
-    // Ensure user is a shareholder
-    if (!$user->shareholder) {
-        return redirect()->route('shop.shareholders.register.create')
-                        ->with('error', 'Please register as a shareholder first.');
-    }
 
-    $shareholder = $user->shareholder;
-    // Ensure shareholder is active
-    if (!$shareholder->is_active) {
-        return redirect()->route('shop.shareholders.register.create')
-                        ->with('error', 'Your shareholder account is not active. Please contact support.');
-    }
+// public function register(Request $request)
+// {
+//     // 1. Ensure user is logged in
+//     if (! Auth::check()) {
+//         return redirect()
+//             ->route('shop.shareholders.login')
+//             ->with('error', 'Please log in to register for membership.');
+//     }
 
-    // Fetch shares and calculate totals
-    $shares = $shareholder->shares()->get();
-    if ($shares->isEmpty()) {
-        return redirect()->route('shop.shareholders.register.create')->with('info', 'You have no shares registered. Please register for shares.');
-    }
-    $totalUnits = $shares->sum('pivot.units');
-    $totalValue = $shares->sum(function ($share) {
-        return $share->pivot->units * $share->price_per_unit;
-    });
-    if ($totalUnits < 1) {
-        return redirect()->route('shop.shareholders.register.create')->with('info', 'You have no shares registered. Please register for shares.');
-    }
-    if ($totalValue < 1) {
-        return redirect()->route('shop.shareholders.register.create')->with('info', 'You have no shares registered. Please register for shares.');
-    }
+//     // 2. Validate input
+//     $data = $request->validate([
+//         'share_id'    => 'required|exists:shares,id',
+//         'total_value' => 'required|numeric|min:1',
+//     ]);
 
-    return view('mumbos::shop.shareholders.dashboard', compact('shareholder', 'shares', 'totalUnits', 'totalValue'));
-}
+//     $shareholder = Auth::user()->shareholder;
+//     if (! $shareholder) {
+//         return redirect()
+//             ->route('shop.shareholders.login')
+//             ->with('error', 'You must register as a shareholder before purchasing shares.');
+//     }
 
+//     $share = Share::findOrFail($data['share_id']);
 
+//     // 3. Compute units
+//     $units = floor($data['total_value'] / $share->price_per_unit);
+//     if ($units < 1) {
+//         return back()->with('error', 'The amount is too low to purchase any units.');
+//     }
 
-public function register(Request $request)
-{
-    // 1. Ensure user is logged in
-    if (! Auth::check()) {
-        return redirect()
-            ->route('shop.shareholders.login')
-            ->with('error', 'Please log in to register for membership.');
-    }
-
-    // 2. Validate input
-    $data = $request->validate([
-        'share_id'    => 'required|exists:shares,id',
-        'total_value' => 'required|numeric|min:1',
-    ]);
-
-    $shareholder = Auth::user()->shareholder;
-    if (! $shareholder) {
-        return redirect()
-            ->route('shop.shareholders.register.create')
-            ->with('error', 'You must register as a shareholder before purchasing shares.');
-    }
-
-    $share = Share::findOrFail($data['share_id']);
-
-    // 3. Compute units
-    $units = floor($data['total_value'] / $share->price_per_unit);
-    if ($units < 1) {
-        return back()->with('error', 'The amount is too low to purchase any units.');
-    }
-
-    // 4. Check if shareholder already has this share
-    DB::transaction(function () use ($shareholder, $share, $units) {
-        if ($shareholder->shares()->where('share_id', $share->id)->exists()) {
-            // already has some units → increment
-            $shareholder->shares()->updateExistingPivot(
-                $share->id,
-                [
-                    'units'      => DB::raw("units + {$units}"),
-                    'updated_at' => now(),
-                ]
-            );
-        } else {
-            // first purchase of this share class
-            $shareholder->shares()->attach($share->id, [
-                'units'      => $units,
-                'created_at' => now(),
-                'updated_at' => now(),
-            ]);
-        }
-    });
+//     // 4. Check if shareholder already has this share
+//     DB::transaction(function () use ($shareholder, $share, $units) {
+//         if ($shareholder->shares()->where('share_id', $share->id)->exists()) {
+//             // already has some units → increment
+//             $shareholder->shares()->updateExistingPivot(
+//                 $share->id,
+//                 [
+//                     'units'      => DB::raw("units + {$units}"),
+//                     'updated_at' => now(),
+//                 ]
+//             );
+//         } else {
+//             // first purchase of this share class
+//             $shareholder->shares()->attach($share->id, [
+//                 'units'      => $units,
+//                 'created_at' => now(),
+//                 'updated_at' => now(),
+//             ]);
+//         }
+//     });
 
 
-    return redirect()
-        ->route('shop.shareholders.dashboard')         
-        ->with('success', "You now own {$units} more units of “{$share->class}”.");
-}
+//     return redirect()
+//         ->route('shop.shareholders.dashboard')         
+//         ->with('success', "You now own {$units} more units of “{$share->class}”.");
+// }
 
 public function editProfile()
 {
@@ -367,7 +328,7 @@ public function editProfile()
     }
 
     if (!$user->shareholder) {
-        return redirect()->route('shop.shareholders.register.create')
+        return redirect()->route('shop.shareholders.login')
                          ->with('error', 'Please register as a shareholder first.');
     }
 
@@ -375,7 +336,7 @@ public function editProfile()
 
 
     if (! $shareholder) {
-        return redirect()->route('shop.shareholders.register.create')->with('error', 'Please register as a shareholder.');
+        return redirect()->route('shop.shareholders.login')->with('error', 'Please register as a shareholder.');
     }
 
     return view('mumbos::shop.shareholders.profile.edit', compact('shareholder'));
@@ -389,7 +350,7 @@ public function viewProfile()
     }
 
     if (!$user->shareholder) {
-        return redirect()->route('shop.shareholders.register.create')
+        return redirect()->route('shop.shareholders.login')
                          ->with('error', 'Please register as a shareholder first.');
     }
 
@@ -424,7 +385,7 @@ public function updateProfile(Request $request)
     {
         $shareholder = Auth::user()->shareholder;
         if (!$shareholder) {
-            return redirect()->route('shop.shareholders.register.create')->with('error', 'Please register as a shareholder.');
+            return redirect()->route('shop.shareholders.login')->with('error', 'Please register as a shareholder.');
         }
         return view('mumbos::shop.shareholders.profile', compact('shareholder'));   
     }
@@ -475,4 +436,89 @@ public function send(Request $request)
 
     return back()->with('success', 'Your message has been sent successfully!');
 }
+
+
+public function dashboard()
+{
+    $user = auth()->user();
+
+    if (! $user || ! $user->shareholder) {
+        return redirect()->route('shop.shareholders.login')
+            ->with('error', 'Please login and register as shareholder.');
+    }
+
+    $shareholder = $user->shareholder()->with([
+        'customer',
+        'shares',
+        'incentives',
+        'contributions.phase',
+        'phase',
+    ])->first();
+
+    // Capital Contributions by Phase
+    $capitalGroups = $shareholder->contributions
+        ->where('type', 'capital')->where('status', 'approved')
+        ->groupBy(fn($c) => $c->phase->name ?? 'Unknown');
+
+    $capitalLabels = $capitalGroups->keys();
+    $capitalData = $capitalGroups->map(fn($g) => $g->sum('amount'))->values();
+
+    // Contribution Timeline (monthly)
+    $timelineGroups = $shareholder->contributions
+        ->where('status', 'approved')->sortBy('created_at')
+        ->groupBy(fn($c) => $c->created_at->format('Y-m'));
+
+    $timelineLabels = $timelineGroups->keys();
+    $timelineData = $timelineGroups->map(fn($g) => $g->sum('amount'))->values();
+
+    // Share Distribution (pie)
+    $shareLabels = $shareholder->shares->pluck('class');
+    $shareData = $shareholder->shares->map(fn($s) => $s->pivot->units);
+
+    // Incentives Over Time
+    $incentiveGroups = $shareholder->incentives->sortBy('created_at')
+        ->groupBy(fn($i) => $i->created_at->format('Y-m'));
+
+    $incentiveLabels = $incentiveGroups->keys();
+    $incentiveData = $incentiveGroups->map(fn($g) => $g->sum('amount'))->values();
+
+    // Stacked Bar: Contributions by Type and Phase
+    $stackedGroups = $shareholder->contributions
+        ->where('status', 'approved')
+        ->groupBy(fn($c) => $c->type)
+        ->map(fn($items) => $items->groupBy(fn($c) => $c->phase->name ?? 'Unknown'));
+
+    $phases = $shareholder->contributions->pluck('phase.name')->unique()->filter()->values();
+    $types = $stackedGroups->keys();
+
+  $stackedData = [];
+    foreach ($types as $type) {
+        $data = $phases->map(fn($phase) =>
+            isset($stackedGroups[$type][$phase])
+                ? $stackedGroups[$type][$phase]->sum('amount')
+                : 0
+        );
+
+        $stackedData[] = [
+            'label' => ucfirst($type),
+            'data' => $data->toArray(), // Ensure array for JS
+        ];
+    }
+return view('mumbos::shop.shareholders.dashboard', [
+    'shareholder' => $shareholder,
+    'capitalLabels' => $capitalLabels->toArray(),
+    'capitalData' => $capitalData->toArray(),
+    'timelineLabels' => $timelineLabels->toArray(),
+    'timelineData' => $timelineData->toArray(),
+    'shareLabels' => $shareLabels->toArray(),
+    'shareData' => $shareData->toArray(),
+    'incentiveLabels' => $incentiveLabels->toArray(),
+    'incentiveData' => $incentiveData->toArray(),
+    'phases' => $phases->toArray(),
+    'stackedData' => $stackedData
+]);
+
+
+}
+
 }

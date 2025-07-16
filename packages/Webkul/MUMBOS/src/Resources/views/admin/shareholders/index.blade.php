@@ -196,7 +196,7 @@
     <div class="w-full mt-10 h-2 my-6 rounded-full bg-gradient-to-r from-green-600 via-blue-500 to-purple-600 shadow-md"></div>
 <div style="height: 4px; background: linear-gradient(to right, green, blue, red);"></div>
     @php
-        $firstVisible = $shareholders->first(); // fallback if only 1 is visible
+        $firstVisible = $shareholders->first(); 
     @endphp
     <div class="max-w-4xl mx-auto text-left space-y-4">
         <h2 class="text-lg font-bold text-gray-800">Shareholder Details</h2>
@@ -204,19 +204,23 @@
             <div>
                 <p class="text-gray-500">Name:</p>
                 <p class="font-medium text-gray-800">
-                    {{ $firstVisible->customer->first_name }} {{ $firstVisible->customer->last_name }}
+                    $fullName = $shareholder->customer
+    ? $shareholder->customer->first_name . ' ' . $shareholder->customer->last_name
+    : 'N/A';
+
                 </p>
             </div>
             <div>
                 <p class="text-gray-500">Member Number:</p>
                 <p class="font-medium text-gray-800">
-                    {{ $firstVisible->shareholder_number }}
+                     {{ $firstVisible->shareholder_number ?? 'N/A' }}
                 </p>
             </div>
             <div>
                 <p class="text-gray-500">Email:</p>
                 <p class="font-medium text-gray-800">
-                    {{ $firstVisible->customer->email }}
+                   {{ $firstVisible?->customer?->email ?? 'No email available' }}
+
                 </p>
             </div>
             <div>
@@ -226,90 +230,121 @@
                 </p>
             </div>
            <div>
-            <p class="text-gray-500 font-medium mb-1">Capital Contributions</p>
-            <ul class="list-disc list-inside text-gray-700 space-y-1">
-                @php
-                    $capitalGrouped = $firstVisible->contributions
+        @if ($firstVisible && $firstVisible->relationLoaded('contributions'))
+    <div>
+        <p class="text-gray-500 font-medium mb-1">Capital Contributions</p>
+        <ul class="list-disc list-inside text-gray-700 space-y-1">
+            @php
+                $capitalGrouped = optional($firstVisible->contributions)
+                    ? $firstVisible->contributions
                         ->where('type', 'capital')
                         ->where('status', 'approved')
-                        ->groupBy(fn($c) => $c->phase->name ?? 'Unknown Phase');
-                @endphp
+                        ->groupBy(fn($c) => $c->phase->name ?? 'Unknown Phase')
+                    : collect();
+            @endphp
 
-                @forelse ($capitalGrouped as $phaseName => $contributions)
-                    <li>
-                        <span class="font-semibold">{{ $phaseName }}:</span>
-                        KES {{ number_format($contributions->sum('amount'), 2) }}
-                    </li>
-                @empty
-                    <li class="text-gray-400">No capital contributions found.</li>
-                @endforelse
-            </ul>
-        </div>
+            @forelse ($capitalGrouped as $phaseName => $contributions)
+                <li>
+                    <span class="font-semibold">{{ $phaseName }}:</span>
+                    KES {{ number_format($contributions->sum('amount'), 2) }}
+                </li>
+            @empty
+                <li class="text-gray-400">No capital contributions found.</li>
+            @endforelse
+        </ul>
+    </div>
 
-        <div class="mt-4">
-            <p class="text-gray-500 font-medium">Other Contributions (excluding capital & membership):</p>
-            <p class="font-semibold text-gray-800">
-                KES {{
-                    number_format(
-                        $firstVisible->contributions
-                            ->filter(fn($c) => !in_array(strtolower($c->type), ['membership', 'capital']) && $c->status === 'approved')
-                            ->sum('amount'),
-                        2
-                    )
-                }}
-            </p>
-        </div>
+    <div class="mt-4">
+        <p class="text-gray-500 font-medium">Other Contributions (excluding capital & membership):</p>
+        <p class="font-semibold text-gray-800">
+            KES {{
+                number_format(
+                    $firstVisible->contributions
+                        ->filter(fn($c) => !in_array(strtolower($c->type), ['membership', 'capital']) && $c->status === 'approved')
+                        ->sum('amount'),
+                    2
+                )
+            }}
+        </p>
+    </div>
+@else
+    <div class="text-gray-400 italic">
+        Contribution details are not available.
+    </div>
+@endif
 
 
-            <div>
-                <p class="text-gray-500">Status:</p>
-                <p class="font-medium text-gray-800">
-                    {{ $firstVisible->is_active ? 'Active' : 'Inactive' }}
-                </p>
-            </div>
+           <div>
+    <p class="text-gray-500">Status:</p>
+    <p class="font-medium text-gray-800">
+        @if ($firstVisible)
+            {{ $firstVisible->is_active ? 'Active' : 'Inactive' }}
+        @else
+            Not available
+        @endif
+    </p>
+</div>
+
 
            <div class="mt-6 flex flex-wrap gap-4">
 
-    {{-- View Profile --}}
+   @if ($firstVisible)
     <a href="{{ route('admin.shareholders.show', $firstVisible) }}"
        class="inline-flex items-center px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-md transition">
         <x-heroicon-s-eye class="w-5 h-5 mr-2" />
         View Full Profile
     </a>
+@else
+    <button disabled
+        class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 text-sm rounded-md cursor-not-allowed">
+        <x-heroicon-s-eye class="w-5 h-5 mr-2" />
+        No Profile
+    </button>
+@endif
 
-    {{-- Edit Member --}}
-    <a href="{{ route('admin.shareholders.edit', $firstVisible) }}"
+
+   @if ($firstVisible)
+    <a href="{{ route('admin.shareholders.edit', ['shareholder' => $firstVisible->shareholder_number]) }}"
        class="inline-flex items-center px-4 py-2 bg-yellow-500 hover:bg-yellow-600 text-white text-sm rounded-md transition">
         <x-heroicon-s-pencil class="w-5 h-5 mr-2" />
         Edit Member
     </a>
+@endif
 
-    {{-- Send Email (only if email exists) --}}
-    @if($firstVisible->customer->email)
-        <a href="mailto:{{ $firstVisible->customer->email }}"
-           class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition">
-            <x-heroicon-s-envelope class="w-5 h-5 mr-2" />
-            Send Email
-        </a>
-    @else
-        <button disabled
-                class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 text-sm rounded-md cursor-not-allowed">
-            <x-heroicon-s-envelope class="w-5 h-5 mr-2" />
-            No Email Available
-        </button>
-    @endif
+@if ($firstVisible && optional($firstVisible->customer)->email)
+    <a href="mailto:{{ $firstVisible->customer->email }}"
+       class="inline-flex items-center px-4 py-2 bg-green-600 hover:bg-green-700 text-white text-sm rounded-md transition">
+        <x-heroicon-s-envelope class="w-5 h-5 mr-2" />
+        Send Email
+    </a>
+@else
+    <button disabled
+            class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 text-sm rounded-md cursor-not-allowed">
+        <x-heroicon-s-envelope class="w-5 h-5 mr-2" />
+        No Email Available
+    </button>
+@endif
 
-    {{-- Download Statement (only if available) --}}
+@if ($firstVisible && $firstVisible->shareholder_number)
     @php
-        $statementUrl = route('admin.shareholders.statement', $firstVisible->shareholder_number);
+        $statementUrl = route('admin.shareholders.statement', ['shareholder_number' => $firstVisible->shareholder_number]);
     @endphp
-<a href="{{ route('admin.shareholders.statement', $firstVisible->shareholder_number) }}"
-   onclick="showToast()"
-   download
-   class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-indigo-600 text-white text-sm rounded-md transition">
-    <x-heroicon-s-arrow-down-tray class="w-5 h-5 mr-2" />
-    View/Download Statement
-</a>
+
+    <a href="{{ $statementUrl }}"
+       onclick="showToast()"
+       download
+       class="inline-flex items-center px-4 py-2 bg-gray-600 hover:bg-indigo-600 text-white text-sm rounded-md transition">
+        <x-heroicon-s-arrow-down-tray class="w-5 h-5 mr-2" />
+        View/Download Statement
+    </a>
+@else
+    <button disabled
+            class="inline-flex items-center px-4 py-2 bg-gray-300 text-gray-600 text-sm rounded-md cursor-not-allowed">
+        <x-heroicon-s-arrow-down-tray class="w-5 h-5 mr-2" />
+        No Statement Available
+    </button>
+@endif
+
 
 
 

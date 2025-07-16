@@ -49,13 +49,13 @@
                     <form method="POST" action="{{ route('contact.send') }}">
                         @csrf
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-                            <input type="text" name="name" placeholder="Your Name" required
+                            <input type="text" name="name" placeholder="Your Name"     required
                                 class="border border-gray-300 rounded-lg px-4 py-3 w-full focus:ring-2 focus:ring-green-500">
                             <input type="email" name="email" placeholder="Your Email" required
                                 class="border border-gray-300 rounded-lg px-4 py-3 w-full focus:ring-2 focus:ring-green-500">
                         </div>
 
-                        <textarea name="message" rows="5" placeholder="Your Message"
+                        <textarea name="message" rows="5" placeholder="Your Message" 
                             class="w-full border border-gray-300 rounded-lg px-4 py-3 focus:ring-2 focus:ring-green-500"></textarea>
                         <button type="submit"
                             class="mt-6 bg-green-100 hover:bg-green-500 text-green-800 border border-green-300 px-6 py-3 rounded-lg font-medium transition duration-200">

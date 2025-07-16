@@ -22,12 +22,15 @@ class ContributionApprovedMail extends Mailable implements ShouldQueue
      * Create a new message instance.
      */
    
-    public function __construct(Contribution $contribution, ?string $receiptUrl = null)
+  public function __construct(Contribution $contribution, ?string $receiptUrl = null)
+{
+    $this->contribution = $contribution;
 
-    {
-        $this->contribution = $contribution;
-         $this->receiptUrl = url($contribution->receipt_url);
-    }
+
+    $this->receiptUrl = $contribution->receipt_url
+        ? url($contribution->receipt_url)
+        : null;
+}
 
     /**
      * Get the message envelope.

@@ -75,37 +75,56 @@
         </div>
 
         <div class="flex flex-wrap justify-center gap-6">
-            @foreach ($shareTypes as $share)
-                <div class="flex items-center w-full md:w-1/2 lg:w-5/12 p-6 rounded-lg shadow-md {{ $loop->odd ? 'bg-green-100' : 'bg-blue-100' }}">
-                    <img 
-                        src="{{ $share->icon_url
-                            ? asset('storage/' . ltrim($share->icon_url, '/'))
-                            : asset('storage/channel/1/3DQKdWJJ0QGBbuDwF8apcQfDyNQCylNGqjqRM53p.png') }}"
-                        alt="{{ $share->class }}" 
-                        class="w-20 h-20 rounded-full mr-6 border-4 border-white shadow"
-                    />
+         @foreach ($membershipTypes as $type)
+    @php
+        $descriptionStripped = strip_tags($type->description);
+        $shortDesc = Str::limit($descriptionStripped, 160);
+    @endphp
 
-                    <div>
-                        <h4 class="text-lg font-semibold text-gray-800">{{ $share->class }}</h4>
-                        <p class="text-sm text-gray-700 mt-1">
-                            {{ $share->description ?? 'No description available.' }}
-                        </p>
+    <div class="flex items-center w-full md:w-1/2 lg:w-5/12 p-6 rounded-lg shadow-md {{ $loop->odd ? 'bg-green-100' : 'bg-blue-100' }}">
+        <img 
+            src="{{ $type->icon_url
+                ? asset('storage/' . ltrim($type->icon_url, '/'))
+                : asset('storage/channel/1/3DQKdWJJ0QGBbuDwF8apcQfDyNQCylNGqjqRM53p.png') }}"
+            alt="{{ $type->name }}" 
+            class="w-20 h-20 rounded-full mr-6 border-4 border-white shadow"
+        />
 
-                        <p class="mt-2 text-xl text-gray-800 font-medium">
-                            <em>Value</em><br>
-                            <strong>KES {{ number_format($share->total_value) }}</strong>
-                        </p>
+        <div class="flex-1">
+            <h4 class="text-lg font-semibold text-gray-800">{{ $type->name }}</h4>
 
-                        <!-- One button per card, passing price_per_unit -->
-                        <button
-                            onclick="openModal({{ $share->id }}, {{ $share->price_per_unit }}, '{{ addslashes($share->class) }}')"
-                            class="mt-4 bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
-                        >
-                            Register
-                        </button>
-                    </div>
-                </div>
-            @endforeach
+            <p class="text-sm text-gray-700 mt-1 leading-relaxed">
+                <span id="short-desc-{{ $type->id }}">{{ $shortDesc }}</span>
+                <span id="full-desc-{{ $type->id }}" class="hidden">{!! nl2br(e($descriptionStripped)) !!}</span>
+
+                @if(strlen($descriptionStripped) > 160)
+                    <button
+                        onclick="toggleReadMore({{ $type->id }})"
+                        id="toggle-btn-{{ $type->id }}"
+                        class="text-blue-600 hover:underline ml-1 text-sm"
+                    >
+                        Read more
+                    </button>
+                @endif
+            </p>
+
+            <p class="mt-2 text-xl text-gray-800 font-medium">
+                <em>Value</em><br>
+                <strong>KES {{ number_format($type->share_value ?? 0) }}</strong>
+            </p>
+
+           <a
+    href="{{ route('contact') }}?membership={{ urlencode($type->name) }}"
+    class="mt-4 inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+>
+    Register
+</a>
+
+        </div>
+    </div>
+@endforeach
+
+
         </div>
     </div>
 </section>
@@ -258,6 +277,25 @@
             estimated.value = units > 0 ? units : 0;
         } else {
             estimated.value = '';
+        }
+    }
+</script>
+<script>
+    function toggleReadMore(id) {
+        const shortDesc = document.getElementById(`short-desc-${id}`);
+        const fullDesc = document.getElementById(`full-desc-${id}`);
+        const btn = document.getElementById(`toggle-btn-${id}`);
+
+        const isCollapsed = shortDesc.style.display !== 'none';
+
+        if (isCollapsed) {
+            shortDesc.style.display = 'none';
+            fullDesc.classList.remove('hidden');
+            btn.textContent = 'Read less';
+        } else {
+            shortDesc.style.display = '';
+            fullDesc.classList.add('hidden');
+            btn.textContent = 'Read more';
         }
     }
 </script>

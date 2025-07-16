@@ -6,7 +6,9 @@ use Illuminate\Routing\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Webkul\MUMBOS\Models\Contribution;
+use Carbon\Carbon;
 use Webkul\MUMBOS\Models\Shareholder;
+use Webkul\MUMBOS\Models\Phase;
 use Illuminate\Support\Facades\Storage;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\StreamedResponse;
@@ -21,33 +23,86 @@ use Webkul\MUMBOS\Services\Payments\MpesaGateway;
 class ContributionController extends Controller
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
-
-    // Show list of contributions
-   public function index()
+public function index(Request $request)
 {
-
-    // 1. Grab the logged‑in customer via the 'customer' guard
     $customer = Auth::guard('customer')->user();
 
-    // 2. If there's no customer, send them to login
     if (! $customer) {
         return redirect()->route('shop.customer.session.index');
     }
 
-    // 3. Grab their shareholder record
     $shareholder = $customer->shareholder;
+
     if (! $shareholder) {
         return redirect()->route('shop.shareholders.register.info')
-                         ->with('error','You must register as a shareholder first.');
+                         ->with('error', 'You must register as a shareholder first.');
     }
 
-    // 4. Fetch their contributions
-    $contributions = $shareholder->contributions()
-                                ->orderBy('contributed_at','desc')
-                                ->paginate(10);
+    $search = $request->input('search');
 
-    return view('mumbos::shop.shareholders.contributions.index', compact('contributions'));
+    $contributionsQuery = $shareholder->contributions()
+        ->with(['phase', 'approvedBy'])
+        ->when($search, function ($query, $search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('payment_method', 'like', "%{$search}%")
+                  ->orWhere('payment_reference', 'like', "%{$search}%")
+                  ->orWhere('note', 'like', "%{$search}%");
+            });
+        })
+        ->orderBy('contributed_at', 'desc');
+
+    $contributions = $contributionsQuery->paginate(10)->withQueryString();
+    $now = Carbon::now();
+    $activePhase = Phase::where('starts_at', '<=', $now)
+        ->where('ends_at', '>=', $now)
+        ->orderBy('starts_at', 'desc') 
+        ->first();
+    $shareholder->load(['contributions.phase', 'incentives', 'shares', 'phase']);
+
+    // Base values
+    $shareValue = $shareholder->phase->share_value ?? 1000;
+
+    // Approved contributions breakdown
+    $membershipContribution = $shareholder->contributions
+        ->where('type', 'membership')
+        ->where('status', 'approved')
+        ->sum('amount');
+
+    $capitalContribution = $shareholder->contributions
+        ->where('type', 'capital')
+        ->where('status', 'approved')
+        ->sum('amount');
+
+    $otherContribution = $shareholder->contributions
+        ->filter(fn($c) => !in_array(strtolower(trim($c->type)), ['membership', 'capital']) && $c->status === 'approved')
+        ->sum('amount');
+
+    // Share calculations
+    $capitalShares = $shareValue > 0 ? $capitalContribution / $shareValue : 0;
+    $contributionShares = $shareValue > 0 ? $otherContribution / $shareValue : 0;
+    $incentiveShares = $shareholder->incentives->sum(fn($i) => $i->pivot->units ?? 0);
+    $assignedShares = $shareholder->shares->sum(fn($s) => $s->pivot->units ?? 0);
+    $totalShares = $capitalShares + $contributionShares + $incentiveShares + $assignedShares;
+
+    return view('mumbos::shop.shareholders.contributions.index', compact(
+        'contributions',
+        'membershipContribution',
+        'capitalContribution',
+        'otherContribution',
+        'capitalShares',
+        'contributionShares',
+        'incentiveShares',
+        'assignedShares',
+        'totalShares',
+         'shareholder',
+          'activePhase'
+    ));
 }
+
+
+
+
+
 
     // Show creation form
     public function create()
@@ -61,18 +116,28 @@ public function store(Request $request)
     $shareholder = Auth::user()->shareholder;
 
     $data = $request->validate([
-        'amount'                  => 'required|numeric|min:1',
-        'payment_method'          => 'required|in:cash,bank_transfer,mpesa',
-        'bank_payment_reference'  => 'nullable|string|max:255',
-        'cash_note'               => 'nullable|string|max:255',
-        'phone'                   => 'nullable|string|max:20',
-        'payment_receipt'         => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
-        'contributed_at'          => 'required|date',
-        'note'                    => 'nullable|string|max:1000',
-    ]);
+    'amount'                 => 'required|numeric|min:1',
+    'type'                   => 'required|in:membership,regular,capital,other',
+    'phase_id'               => 'required|exists:phases,id',
+    'payment_method'         => 'required|in:cash,bank_transfer,mpesa',
+    'bank_payment_reference' => 'nullable|string|max:255',
+    'cash_note'              => 'nullable|string|max:255',
+    'phone'                  => 'nullable|string|max:20',
+    'payment_receipt'        => 'nullable|file|mimes:jpg,jpeg,png,pdf|max:2048',
+    'contributed_at'         => 'required|date',
+    'note'                   => 'nullable|string|max:1000',
+]);
+    // Ensure shareholder exists
+    if (! $shareholder) {
+        return redirect()->route('shop.shareholders.register.info')
+                         ->with('error', 'You must be registered as shareholder first.');
+    }
 
     $data['currency']        = 'KES';
     $data['payment_status']  = 'pending';
+    $data['type'] = $request->input('type');
+    $data['phase_id'] = $request->input('phase_id');
+    $data['contributed_at']  = $request->input('contributed_at') ? \Carbon\Carbon::parse($request->input('contributed_at')) : now();
     $data['status']          = 'pending';
     $data['paid_at']         = now();
     $data['shareholder_id']  = $shareholder->id;
