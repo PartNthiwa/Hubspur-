@@ -92,7 +92,7 @@
                            {{ old('is_board_member', optional($shareholder)->is_board_member) ? 'checked' : '' }}>
                     <label class="text-sm font-medium text-gray-700">Is Board Member</label>
                 </div>
-            </div>
+               
         </div>
 
         {{-- Membership Types --}}

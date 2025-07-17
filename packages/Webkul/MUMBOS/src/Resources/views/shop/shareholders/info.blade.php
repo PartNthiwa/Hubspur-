@@ -72,6 +72,8 @@
     <div class="container mx-auto px-4">
         <div class="text-center mb-8">
             <h2 class="text-2xl font-bold uppercase text-gray-800">Shareholding Categories</h2>
+        <p><i> <small> Shareholding is by invitation only</small></i></p>
+
         </div>
 
         <div class="flex flex-wrap justify-center gap-6">
@@ -117,9 +119,9 @@
     href="{{ route('contact') }}?membership={{ urlencode($type->name) }}"
     class="mt-4 inline-block bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
 >
-    Register
+    Express Interest
 </a>
-
+   
         </div>
     </div>
 @endforeach

@@ -113,7 +113,7 @@ Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions
 });
 
 Route::post('/admin/contributions/bulk-action', [ContributionController::class, 'bulkAction'])
-
+    ->middleware(['web', 'admin'])
     ->name('admin.contributions.bulk-action');
 
 Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/mumbos'], function () {

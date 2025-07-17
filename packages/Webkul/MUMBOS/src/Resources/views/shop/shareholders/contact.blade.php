@@ -1,5 +1,5 @@
 <x-shop::layouts>
-    <x-slot:title>Contact Us</x-slot>
+    <x-slot:title>Request Invitation</x-slot>
 
     <main class=" min-h-screen py-16 flex justify-center items-center">
         {{-- Constrained wrapper --}}
@@ -8,9 +8,9 @@
 
                 {{-- Header --}}
                 <div class="text-center mb-10">
-                    <h1 class="text-3xl font-bold text-green-800 mt-20">Contact Us</h1>
+                    <h1 class="text-3xl font-bold text-green-800 mt-20">Request Invitation</h1>
                     <p class="mt-2 text-gray-600 text-lg">
-                        We’d love to hear from you. Reach out using the details below or send us a message.
+                       Interested in becoming a shareholder? Fill out the form below to request an invitation.
                     </p>
                 </div>
 

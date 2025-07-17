@@ -51,7 +51,7 @@ public function index(Request $request)
         })
         ->orderBy('contributed_at', 'desc');
 
-    $contributions = $contributionsQuery->paginate(10)->withQueryString();
+    $contributions = $contributionsQuery->paginate(5)->withQueryString();
     $now = Carbon::now();
     $activePhase = Phase::where('starts_at', '<=', $now)
         ->where('ends_at', '>=', $now)

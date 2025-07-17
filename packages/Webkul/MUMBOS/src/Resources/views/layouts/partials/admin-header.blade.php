@@ -15,7 +15,11 @@
                         </a> </h1>
     
         <nav class="space-x-4 text-sm font-medium flex items-center">
-            <p>  {{ __('Member since') }}  {{ Auth::user()->shareholder->created_at->diffForHumans() }}</p>
+           <p>
+    {{ __('Member since') }} 
+    {{ optional(optional(Auth::guard('customer')->user())->shareholder)->created_at?->diffForHumans() ?? '—' }}
+</p>
+
             <a href="{{ route('shop.shareholders.profile') }}" class="hover:underline">Profile</a>
 
             <form method="POST" action="{{ route('logout') }}" class="inline">

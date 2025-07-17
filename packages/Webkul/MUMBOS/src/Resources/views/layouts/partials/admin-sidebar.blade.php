@@ -24,14 +24,16 @@
                 </a>
             </li>
             <li>
-                <a href="{{ url('member.certificate') }}"
+                     <a href="{{ route('shop.shareholder.card.view') }}"
+
                    class="inline-flex items-center text-black hover:text-green-300 transition">
                     <i class="fas fa-certificate text-lg mr-3"></i>
-                    Certificate
+                    Member Card
+
                 </a>
             </li>
             <li>
-                <a href="{{ url('member.support') }}"
+                <a href="{{ route('support') }}"
                    class="inline-flex items-center text-black hover:text-green-300 transition">
                     <i class="fas fa-headset text-lg mr-3"></i>
                     Support

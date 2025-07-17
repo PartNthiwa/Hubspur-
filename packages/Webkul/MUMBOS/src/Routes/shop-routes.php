@@ -72,6 +72,14 @@ Route::group([
     Route::delete('/shareholder/contributions/{contribution}', [ContributionController::class, 'destroy'])->name('shop.shareholders.contributions.destroy'); 
     // Shareholder Groups
 
+Route::get('/shareholdercard', [ShareholderController::class, 'view'])
+    ->name('shop.shareholder.card.view');
+
+Route::get('/shareholdercard/download', [ShareholderController::class, 'cardDownload'])
+    ->name('shop.shareholder.card.download');
+Route::get('/support', function () {return view('mumbos::shop.shareholders.support');
+})->middleware(['web', 'shop'])->name('support');
+Route::post('/support/support', [ShareholderController::class, 'support'])->middleware(['web', 'shop'])->name('support.support');
 
 
     Route::post('/shareholder/forgot-password', function (Request $request) {

@@ -27,11 +27,15 @@ use Illuminate\Foundation\Bus\DispatchesJobs;
 use Illuminate\Foundation\Validation\ValidatesRequests;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use App\Notifications\ShareholderInvitationNotification;
-
+use App\Notifications\ShareholderPasswordChangeNotification;
 
 class ShareholderController extends Controller
 {
     use AuthorizesRequests, DispatchesJobs, ValidatesRequests;
+
+
+
+
 
     public function index()
     {   
@@ -429,9 +433,9 @@ public function allocateShares(Request $request, Shareholder $shareholder)
 
 
 
-public function updateShareUnits(Request $request, $shareholderId, $shareId)
+public function updateShareUnits(Request $request, $shareholderNumber, $shareId)
 {
-    $shareholder = Shareholder::findOrFail($shareholderId);
+    $shareholder = Shareholder::findOrFail($shareholderNumber);
     $share = Share::findOrFail($shareId);
 
     $request->validate([
@@ -463,7 +467,7 @@ public function sendResetLink($shareholderNumber)
     }
 
     // Send password reset link via the customer password broker
-    Password::broker('shareholders')->sendResetLink(['email' => $customer->email]);
+    Password::sendResetLink(['email' => $customer->email]);
 
     // Log invitation and enable access
     $shareholder->update([
@@ -472,6 +476,39 @@ public function sendResetLink($shareholderNumber)
     ]);
 
     return back()->with('success', 'Password reset link sent to shareholder.');
+}
+public function passwordChange(Request $request, $shareholderNumber)
+{
+    Log::info('✅ passwordChange method HIT for: ' . $shareholderNumber);
+
+    $shareholder = Shareholder::where('shareholder_number', $shareholderNumber)->firstOrFail();
+
+    if (!$shareholder->customer || !$shareholder->customer->email) {
+        return back()->with('error', 'Shareholder does not have a valid customer or email.');
+    }
+
+    $user = $shareholder->customer;
+
+    $token = Str::random(64);
+
+    DB::table('password_resets')->updateOrInsert(
+        ['email' => $user->email],
+        [
+            'email' => $user->email,
+            'token' => Hash::make($token),
+            'created_at' => now(),
+        ]
+    );
+
+    try {
+        Log::info('Attempting to send password reset to: ' . $user->email);
+        $user->notify(new ShareholderPasswordChangeNotification($token, $user->email));
+        Log::info('✅ Password reset notification sent.');
+        return back()->with('success', 'Password reset email sent to ' . $user->email);
+    } catch (\Throwable $e) {
+        Log::error('❌ Password reset notification failed: ' . $e->getMessage());
+        return back()->with('error', 'Failed to send password reset email.');
+    }
 }
 
 

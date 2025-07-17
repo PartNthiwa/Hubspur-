@@ -438,9 +438,55 @@ public function send(Request $request)
 }
 
 
+public function support(Request $request)
+{
+    if (!Auth::check()) {
+        abort(403, 'Unauthorized. Please log in to submit this form.');
+    }
+
+
+    $shareholder = Auth::user()->shareholder;
+    // Check if the user is a shareholder
+    if (!$shareholder) {
+        abort(403, 'You must be a shareholder to submit this form.');
+    }
+
+    // Optional: Add additional status checks
+   if (!$shareholder->is_active) {
+    abort(403, 'Your shareholder account is not active.');
+}
+
+    // Validate form input
+    $validated = $request->validate([
+        'name'    => 'required|string|max:255',
+        'email'   => 'required|email',
+        'message' => 'required|string|max:2000',
+    ]);
+
+    $fullMessage = "Shareholder #: {$shareholder->shareholder_number}\n\n";
+    $fullMessage .= $validated['message'];
+
+  
+    ContactUs::create([
+        'name'    => $validated['name'],
+        'email'   => $validated['email'],
+        'message' => $fullMessage,
+    ]);
+
+    // Send email
+    Mail::raw($fullMessage, function ($mail) use ($validated) {
+        $mail->to('support@mumbodiaspora.org')
+             ->subject("New Message from {$validated['name']}")
+             ->replyTo($validated['email']);
+    });
+
+    return back()->with('info', 'You will contacted before end of day Today!');
+}
+
+
 public function dashboard()
 {
-    $user = auth()->user();
+    $user = auth('customer')->user();
 
     if (! $user || ! $user->shareholder) {
         return redirect()->route('shop.shareholders.login')
@@ -454,6 +500,10 @@ public function dashboard()
         'contributions.phase',
         'phase',
     ])->first();
+
+    if ($shareholder->is_active != 1) {
+        abort(403, 'Your shareholder account is not active.');
+    }
 
     // Capital Contributions by Phase
     $capitalGroups = $shareholder->contributions
@@ -520,5 +570,25 @@ return view('mumbos::shop.shareholders.dashboard', [
 
 
 }
+
+
+public function view()
+{
+    $user = auth('customer')->user();
+    $shareholder = optional($user)->shareholder;
+
+    return view('mumbos::shop.shareholders.card', compact('shareholder'));
+}
+
+public function cardDownload()
+{
+    $user = auth('customer')->user();
+    $shareholder = optional($user)->shareholder;
+
+    $pdf = \PDF::loadView('mumbos::shop.shareholders.card-pdf', compact('shareholder'));
+
+    return $pdf->download('shareholder_card.pdf');
+}
+
 
 }
