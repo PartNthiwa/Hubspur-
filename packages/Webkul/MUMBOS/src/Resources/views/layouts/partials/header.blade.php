@@ -65,27 +65,28 @@
 </div>
 
       {{-- About Us Dropdown --}}
-      <div class="relative">
-        <button onclick="toggleDropdown('about-menu')"
-                class="text-gray-700 hover:text-green-600 transition focus:outline-none flex items-center">
-          About Us <i class="fas fa-chevron-down ml-1 text-xs"></i>
-        </button>
-        <div id="about-menu"
-             class="dropdown-menu hidden absolute mt-2 w-48 bg-white rounded shadow-lg py-2 z-50">
-          <a href="{{ url('/about') }}"
-             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            Who We Are
-          </a>
-          <a href="{{ url('/mission') }}"
-             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            Mission & Vision
-          </a>
-          <a href="{{ url('/team') }}"
-             class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
-            Leadership
-          </a>
-        </div>
-      </div>
+  <div class="relative">
+    <button onclick="toggleDropdown('about-menu')"
+            class="text-gray-700 hover:text-green-600 transition focus:outline-none flex items-center">
+      About Us <i class="fas fa-chevron-down ml-1 text-xs"></i>
+    </button>
+    <div id="about-menu"
+        class="dropdown-menu hidden absolute mt-2 w-48 bg-white rounded shadow-lg py-2 z-50">
+      <a href="{{ route('shop.shareholders.register.info') }}#who-we-are"
+        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+        Who We Are
+      </a>
+      <a href="{{ route('shop.shareholders.register.info') }}#mission-vision"
+        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+        Mission & Vision
+      </a>
+      <a href="{{ route('shop.shareholders.register.info') }}#leadership"
+        class="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100">
+        Leadership
+      </a>
+    </div>
+  </div>
+
 
       <a href="{{ url('/contact') }}" class="text-gray-700 hover:text-green-600 transition">Contact</a>
     </nav>

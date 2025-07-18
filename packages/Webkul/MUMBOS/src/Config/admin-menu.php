@@ -82,4 +82,22 @@ return [
         'icon'   => '',
         'parent' => 'mumbos.contributions',
     ],
+     // │   └── Leadrship
+    [
+        'key'    => 'mumbos.leaders',
+        'name'   => 'Leadership',
+        'route'  => 'admin.leaders.index',
+        'sort'   => 1,
+        'icon'   => '',
+        'parent' => 'mumbos',
+    ],
+     // │   └── Teams
+    [
+        'key'    => 'mumbos.teams',
+        'name'   => 'Teams',
+        'route'  => 'admin.teams.index',
+        'sort'   => 1,
+        'icon'   => '',
+        'parent' => 'mumbos',
+    ],
 ];

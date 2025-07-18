@@ -24,8 +24,13 @@
     :has-header="false" 
     :has-footer="false"
 >
+
+
       @include('mumbos::layouts.partials.header')
 
+
+
+      </style>
     <x-slot:title>
         {{ __('Become a Member - MUMBO Kenya Diaspora Investments') }}
     </x-slot>
@@ -200,88 +205,117 @@
 
 
 
-    <section class="py-5 bg-gradient-to-r from-green-600 to-blue-600 text-white">
+    <section class="py-5 bg-gradient-to-r from-green-600 to-blue-600 text-white mb-8">
         <div class="container text-center">
-            <h2 class="text-2xl mb-4 font-bold mb-4">Join MUMBO Shareholding Community Today</h2>
-            <a href="{{ route('shop.shareholders.register.create') }}" class="btn btn-lg  bg-white text-green-700 font-semibold text-uppercase px-6 py-3 rounded">
+            <h2 class="text-2xl mb-6 font-bold mb-4">Join MUMBO Shareholding Community Today</h2>
+            <a href="{{ route('contact') }}" class="btn btn-lg  bg-white text-green-700 font-semibold text-uppercase px-6 py-3 rounded">
                 Register Today
             </a>
         </div>
     </section>
-   <div id="shareRegisterModal" class="fixed inset-0 z-50 bg-black bg-opacity-50 hidden items-center justify-center">
-    <div class="bg-white p-6 rounded-lg w-full max-w-md shadow-lg relative">
-        <button onclick="closeModal()" class="absolute top-2 right-2 text-gray-500 hover:text-red-600">&times;</button>
 
-        <h3 class="text-lg font-bold mb-4">
-            Register for <span id="modalShareClass" class="underline"></span>
-        </h3>
 
-        <form method="POST" action="{{ route('shop.shares.register') }}">
-            @csrf
-            <input type="hidden" name="share_id" id="modalShareId">
-            <input type="hidden" id="unitValue" value="">
+<!-- Who We Are Section -->
+<section id="who-we-are" class="py-16 bg-white">
+    <div class="max-w-5xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold text-gray-800 mb-4">Who We Are</h2>
+        <p class="text-lg text-gray-600 leading-relaxed">
+            MUMBO Kenya Diaspora Investments is a member-led collective of diaspora professionals and entrepreneurs channeling resources into Kenya’s future through structured and transparent investments.
+        </p>
 
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Amount (KES)</label>
-                <input
-                    type="number"
-                    name="total_value"
-                    id="totalValueInput"
-                    required
-                    min="1"
-                    class="w-full mt-1 p-2 border rounded"
-                    oninput="calculateUnits()"
-                >
-            </div>
-
-            <div class="mb-4">
-                <label class="block text-sm font-medium text-gray-700">Estimated Units</label>
-                <input
-                    type="text"
-                    id="estimatedUnits"
-                    readonly
-                    class="w-full mt-1 p-2 bg-gray-100 rounded"
-                >
-            </div>
-
-            <button type="submit" class="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700">
-                Submit
-            </button>
-        </form>
+        <!-- Heroicon instead of image -->
+        <div class="mt-8 flex justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 fill="none"
+                 viewBox="0 0 24 24"
+                 stroke-width="1.5"
+                 stroke="currentColor"
+                 class="w-32 h-32 text-green-600">
+                <path stroke-linecap="round" stroke-linejoin="round"
+                      d="M17.982 18.725A7.488 7.488 0 0012 16.5a7.488 7.488 0 00-5.982 2.225M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm6 7.5a7.5 7.5 0 10-15 0 7.5 7.5 0 0015 0z" />
+            </svg>
+        </div>
     </div>
-</div>
-<script>
-    function openModal(shareId, pricePerUnit, shareClass) {
-        document.getElementById('modalShareId').value    = shareId;
-        document.getElementById('unitValue').value       = pricePerUnit;
-        document.getElementById('modalShareClass').textContent = shareClass;
-        document.getElementById('totalValueInput').value = '';
-        document.getElementById('estimatedUnits').value  = '';
+</section>
 
-        const modal = document.getElementById('shareRegisterModal');
-        modal.classList.remove('hidden');
-        modal.classList.add('flex');
-    }
 
-    function closeModal() {
-        const modal = document.getElementById('shareRegisterModal');
-        modal.classList.remove('flex');
-        modal.classList.add('hidden');
-    }
+<!-- Mission & Vision Section -->
+<section id="mission-vision" class="py-16 bg-gray-50">
+  <div class="max-w-6xl mx-auto px-4 text-center">
+    <h2 class="text-3xl font-bold text-gray-800 mb-10">Our Mission & Vision</h2>
 
-    function calculateUnits() {
-        const total = parseFloat(document.getElementById('totalValueInput').value);
-        const price = parseFloat(document.getElementById('unitValue').value);
+    <div class="grid md:grid-cols-2 gap-10">
+      <!-- Mission Card -->
+      <div class="relative w-full h-72 bg-green-600 text-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center text-center">
+        <!-- Heroicon -->
+        <div style="background-color: white; border-radius: 9999px; padding: 0.75rem; margin-bottom: 1rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M9 2a1 1 0 011 1v7h3a1 1 0 110 2h-4a1 1 0 01-1-1V3a1 1 0 011-1z"/>
+          </svg>
+        </div>
 
-        const estimated = document.getElementById('estimatedUnits');
-        if (total > 0 && price > 0) {
-            const units = Math.floor(total / price);
-            estimated.value = units > 0 ? units : 0;
-        } else {
-            estimated.value = '';
-        }
-    }
-</script>
+        <h3 class="text-xl font-semibold mb-2">Mission</h3>
+        <p class="leading-relaxed">
+          To empower the diaspora to drive economic growth by investing in sustainable, community-based projects in Kenya.
+        </p>
+      </div>
+
+      <!-- Vision Card -->
+      <div class="relative w-full h-72 bg-red-600 text-white rounded-xl shadow-lg p-6 flex flex-col items-center justify-center text-center">
+        <!-- Heroicon -->
+        <div style="background-color: white; border-radius: 9999px; padding: 0.75rem; margin-bottom: 1rem;">
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-13a1 1 0 10-2 0v5a1 1 0 00.293.707l3 3a1 1 0 001.414-1.414L11 9.586V5z" clip-rule="evenodd"/>
+          </svg>
+        </div>
+
+        <h3 class="text-xl font-semibold mb-2">Vision</h3>
+        <p class="leading-relaxed">
+          A prosperous Kenya nurtured by its global diaspora, where collective investment transforms lives.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- Leadership Section -->
+<!-- Leadership Section -->
+<section id="leadership" class="py-16 bg-gray-50">
+    <div class="max-w-6xl mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold text-gray-800 mb-10">Our Leadership Teams</h2>
+
+        @foreach ($teams as $team)
+            @if ($team->leaders->isNotEmpty())
+                <div class="mb-12">
+                    <h3 id="{{ Str::slug($team->name) }}" class="text-2xl font-semibold text-green-700 mb-6">
+                        {{ $team->name }}
+                    </h3>
+
+                    <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                        @foreach ($team->leaders as $leader)
+                            <div class="bg-white rounded-xl shadow-md hover:shadow-xl transition p-6 flex flex-col items-center text-center">
+                                <img src="{{ $leader->photo ? asset('storage/' . $leader->photo) : 'https://via.placeholder.com/150' }}"
+                                     alt="{{ $leader->name }}"
+                                     class="w-24 h-24 object-cover rounded-full mb-4 border-4 border-green-500 shadow">
+
+                                <h4 class="text-lg font-bold text-gray-800">{{ $leader->name }}</h4>
+                                <p class="text-sm text-green-600 font-medium mt-1">{{ $leader->position }}</p>
+
+                                <p class="text-sm text-gray-600 mt-3">
+                                    {{ \Illuminate\Support\Str::limit(strip_tags($leader->bio), 100) }}
+                                </p>
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+            @endif
+        @endforeach
+    </div>
+</section>
+
+
+
 <script>
     function toggleReadMore(id) {
         const shortDesc = document.getElementById(`short-desc-${id}`);

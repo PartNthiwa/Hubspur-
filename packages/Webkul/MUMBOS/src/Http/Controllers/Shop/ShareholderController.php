@@ -20,6 +20,7 @@ use Webkul\MUMBOS\Models\MembershipType;
 use Illuminate\Support\Facades\DB;
 use Webkul\Shop\Http\Controllers\Controller;
 use App\Charts\CapitalContributionChart;
+use Webkul\MUMBOS\Models\Team;
 
 class ShareholderController extends Controller
 {
@@ -85,7 +86,13 @@ class ShareholderController extends Controller
         ->orderBy('created_at', 'desc')
         ->get();
 
-    return view('mumbos::shop.shareholders.info', compact('membershipTypes'));
+ 
+    $teams = Team::with(['leaders' => function ($query) {
+        $query->where('status', 'active')->orderBy('priority');
+    }])->get();
+
+
+    return view('mumbos::shop.shareholders.info', compact('membershipTypes','teams'));
 
     }
 

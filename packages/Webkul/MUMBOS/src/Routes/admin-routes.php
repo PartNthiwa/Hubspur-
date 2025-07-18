@@ -9,7 +9,8 @@ use Webkul\MUMBOS\Http\Controllers\Admin\MembershipTypeController;
 use Webkul\MUMBOS\Http\Controllers\Admin\ContributionController;
 use Webkul\MUMBOS\Http\Controllers\Admin\PhaseController;
 use Webkul\MUMBOS\Http\Controllers\Admin\IncentiveController;
-
+use Webkul\MUMBOS\Http\Controllers\Admin\LeadershipController;
+use Webkul\MUMBOS\Http\Controllers\Admin\TeamController;
 use Webkul\MUMBOS\Http\Controllers\Admin\MpesaCallbackController;
 
 Route::group(['middleware' => ['web', 'admin'], 'prefix' => 'admin/contributions'], function () {
@@ -133,3 +134,37 @@ Route::get('admin/contributions/{contribution}/receipt', [ContributionController
 Route::put('/admin/incentives/{incentive_id}/shareholder/{shareholder_number}/update-units', [
     IncentiveController::class, 'updateUnits'
 ])->name('admin.incentives.update-units');
+
+
+
+Route::group([
+    'middleware' => ['web', 'admin'],
+    'prefix' => 'admin/leaders',
+    'as' => 'admin.leaders.',
+], function () {
+    Route::controller(LeadershipController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{leader}', 'show')->name('show');
+        Route::get('/{leader}/edit', 'edit')->name('edit');
+        Route::put('/{leader}', 'update')->name('update');
+        Route::delete('/{leader}', 'destroy')->name('destroy');
+    });
+});
+
+Route::group([
+    'middleware' => ['web', 'admin'],
+    'prefix' => 'admin/teams',
+    'as' => 'admin.teams.',
+], function () {
+    Route::controller(TeamController::class)->group(function () {
+        Route::get('/', 'index')->name('index');
+        Route::get('/create', 'create')->name('create');
+        Route::post('/', 'store')->name('store');
+        Route::get('/{team}', 'show')->name('show');
+        Route::get('/{team}/edit', 'edit')->name('edit');
+        Route::put('/{team}', 'update')->name('update');
+        Route::delete('/{team}', 'destroy')->name('destroy');
+    });
+});

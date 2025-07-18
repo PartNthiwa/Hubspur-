@@ -32,13 +32,13 @@ Route::group([
     'middleware' => ['web', 'shop'],
 ], function () {
     // Shareholder Registration
-    Route::get('/register/shareholder', [ShareholderController::class, 'create'])->name('shop.shareholders.register.create');
-    Route::post('/register/shareholder', [ShareholderController::class, 'store'])->name('shop.shareholders.register.store');
+    // Route::get('/register/shareholder', [ShareholderController::class, 'create'])->name('shop.shareholders.register.create');
+    // Route::post('/register/shareholder', [ShareholderController::class, 'store'])->name('shop.shareholders.register.store');
     Route::get('/register/shareholder/info', [ShareholderController::class, 'info'])->name('shop.shareholders.register.info');
-    Route::get('/register/shareholder/terms', [ShareholderController::class, 'terms'])->name('shop.shareholders.register.terms');
-    Route::get('/register/shareholder/confirm', [ShareholderController::class, 'confirm'])->name('shop.shareholders.register.confirm');
-    Route::get('/register/shareholder/thank-you', [ShareholderController::class, 'thankYou'])->name('shop.shareholders.register.thank-you');
-   Route::post('/shares/register', [ShareholderController::class, 'register'])->name('shop.shares.register');
+    // Route::get('/register/shareholder/terms', [ShareholderController::class, 'terms'])->name('shop.shareholders.register.terms');
+    // Route::get('/register/shareholder/confirm', [ShareholderController::class, 'confirm'])->name('shop.shareholders.register.confirm');
+    // Route::get('/register/shareholder/thank-you', [ShareholderController::class, 'thankYou'])->name('shop.shareholders.register.thank-you');
+//    Route::post('/shares/register', [ShareholderController::class, 'register'])->name('shop.shares.register');
 
     // Shareholder Login
     
@@ -46,18 +46,18 @@ Route::group([
     Route::post('/shareholder/login', [ShareholderController::class, 'login'])->name('shop.shareholders.login');
     Route::post('/shareholder/logout', [ShareholderController::class, 'logout'])->name('shop.shareholders.logout');
     Route::get('/shareholder/dashboard', [ShareholderController::class, 'dashboard'])->name('shop.shareholders.dashboard');
-    // Shareholder Forgot Password (optional)
-    Route::get('/shareholder/forgot-password', [ShareholderController::class, 'showForgotPasswordForm'])->name('shop.shareholders.forgot-password');
-     Route::post('/shareholder/forgot-password', [ShareholderController::class, 'sendResetLink'])->name('shop.shareholders.forgot-password.send');
+    // // Shareholder Forgot Password (optional)
+    // Route::get('/shareholder/forgot-password', [ShareholderController::class, 'showForgotPasswordForm'])->name('shop.shareholders.forgot-password');
+    //  Route::post('/shareholder/forgot-password', [ShareholderController::class, 'sendResetLink'])->name('shop.shareholders.forgot-password.send');
     Route::get('/shareholder/reset-password/{token}', [ShareholderController::class, 'showResetForm'])->name('shop.shareholders.password.reset.form');
 
     Route::post('/shareholder/reset-password', [ShareholderController::class, 'resetPassword'])->name('shop.shareholders.password.reset');
 
     // Shareholder Profile
     Route::get('/shareholder/profile', [ShareholderController::class, 'viewProfile'])->name('shop.shareholders.profile');
-    Route::get('/shareholder/profile/edit', [ShareholderController::class, 'editProfile'])->name('shop.shareholders.profile.edit');
+    // Route::get('/shareholder/profile/edit', [ShareholderController::class, 'editProfile'])->name('shop.shareholders.profile.edit');
     
-    Route::post('/shareholder/profile/update', [ShareholderController::class, 'updateProfile'])->name('shop.shareholders.profile.update');                  
+    // Route::post('/shareholder/profile/update', [ShareholderController::class, 'updateProfile'])->name('shop.shareholders.profile.update');                  
     Route::get('/shareholder/profile/change-password', [ShareholderController::class, 'showChangePasswordForm'])->name('shop.shareholders.profile.change-password.form');
     Route::post('/shareholder/profile/change-password', [ShareholderController::class, 'changePassword'])->name('shop.shareholders.profile.change-password');   
 
@@ -66,10 +66,10 @@ Route::group([
     Route::get('/shareholder/contributions', [ContributionController::class, 'index'])->name('shop.shareholders.contributions.index');
     Route::get('/shareholder/contributions/create', [ContributionController::class, 'create'])->name('shop.shareholders.contributions.create');
     Route::post('/shareholder/contributions', [ContributionController::class, 'store'])->name('shop.shareholders.contributions.store');
-    Route::get('/shareholder/contributions/{contribution}', [ContributionController::class, 'show'])->name('shop.shareholders.contributions.show');
-    Route::get('/shareholder/contributions/{contribution}/edit', [ContributionController::class, 'edit'])->name('shop.shareholders.contributions.edit');
-    Route::put('/shareholder/contributions/{contribution}', [ContributionController::class, 'update'])->name('shop.shareholders.contributions.update');
-    Route::delete('/shareholder/contributions/{contribution}', [ContributionController::class, 'destroy'])->name('shop.shareholders.contributions.destroy'); 
+    // Route::get('/shareholder/contributions/{contribution}', [ContributionController::class, 'show'])->name('shop.shareholders.contributions.show');
+    // Route::get('/shareholder/contributions/{contribution}/edit', [ContributionController::class, 'edit'])->name('shop.shareholders.contributions.edit');
+    // Route::put('/shareholder/contributions/{contribution}', [ContributionController::class, 'update'])->name('shop.shareholders.contributions.update');
+    // Route::delete('/shareholder/contributions/{contribution}', [ContributionController::class, 'destroy'])->name('shop.shareholders.contributions.destroy'); 
     // Shareholder Groups
 
 Route::get('/shareholdercard', [ShareholderController::class, 'view'])
@@ -93,6 +93,13 @@ Route::post('/support/support', [ShareholderController::class, 'support'])->midd
         ? back()->with('status', __($status))
         : back()->withErrors(['email' => __($status)]);
 })->name('shop.shareholders.forgot-password.send');
+
+
+/*****************************/
+
+
+
+
 
 });
 
